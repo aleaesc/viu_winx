@@ -374,10 +374,10 @@
         <script>
         // Fallback if JS errors stop initial transition
         setTimeout(() => {
-            const splash = document.getElementById('splash-screen';
-            const welcome = document.getElementById('welcome-page';
+            const splash = document.getElementById('splash-screen');
+            const welcome = document.getElementById('welcome-page');
             if (splash && !splash.classList.contains('fade-out')) {
-                splash.classList.add('fade-out';
+                splash.classList.add('fade-out');
                 if (welcome && welcome.style.opacity === '0') welcome.style.opacity = '1';
             }
         }, 2500);
@@ -404,19 +404,19 @@
             lucide.createIcons();
             loadQuestionsFromStorage(); // Load admin edits
             // Immediately reveal welcome page and hide splash
-            const splash = document.getElementById('splash-screen';
-            const welcome = document.getElementById('welcome-page';
+            const splash = document.getElementById('splash-screen');
+            const welcome = document.getElementById('welcome-page');
             if (welcome) {
-                welcome.classList.remove('hidden-page';
+                welcome.classList.remove('hidden-page');
                 welcome.style.opacity = '1';
             }
             if (splash) {
-                splash.classList.add('fade-out';
+                splash.classList.add('fade-out');
             }
         });
 
         async function loadQuestionsFromStorage() {
-            const stored = localStorage.getItem('viu_survey_questions';
+            const stored = localStorage.getItem('viu_survey_questions');
             if (stored) {
                 questions = JSON.parse(stored);
                 questions.forEach(q => q.rating = 0);
@@ -456,7 +456,7 @@
         }
         
         function toggleChat() {
-            const overlay = document.getElementById('chat-overlay';
+            const overlay = document.getElementById('chat-overlay');
             chatState.opened = !chatState.opened;
             overlay.classList.toggle('visible', chatState.opened);
             
@@ -468,7 +468,7 @@
         
         // Enhancement #15: Restore chat history
         function restoreChatHistory() {
-            const body = document.querySelector('.chat-body';
+            const body = document.querySelector('.chat-body');
             body.innerHTML = ''; // Clear existing
             chatState.conversationHistory.forEach(msg => {
                 if(msg.type === 'user') {
@@ -498,9 +498,9 @@
 
         // Optional: wire simple client send to backend
         (function initChat() {
-            const body = document.querySelector('.chat-body';
-            const input = document.querySelector('.chat-input';
-            const sendBtn = document.querySelector('.chat-input-area button';
+            const body = document.querySelector('.chat-body');
+            const input = document.querySelector('.chat-input');
+            const sendBtn = document.querySelector('.chat-input-area button');
             
             // Enhancement #3: Multi-language support
             const translations = {
@@ -526,9 +526,9 @@
             
             // Enhancement #5: Fuzzy matching
             function fuzzyMatch(text, patterns) {
-                const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '';
+                const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
                 return patterns.some(p => {
-                    const pattern = p.toLowerCase().replace(/[^a-z0-9\s]/g, '';
+                    const pattern = p.toLowerCase().replace(/[^a-z0-9\s]/g, '');
                     const distance = levenshteinDistance(normalized, pattern);
                     return distance <= 2 || normalized.includes(pattern) || pattern.includes(normalized);
                 });
@@ -753,9 +753,9 @@
 
             // Message rendering helpers
             function addUserMessage(text, timestamp = Date.now(), skipHistory = false) {
-                const ur = document.createElement('div';
+                const ur = document.createElement('div');
                 ur.className = 'chat-row user';
-                const ub = document.createElement('div';
+                const ub = document.createElement('div');
                 ub.className = 'chat-bubble-user';
                 ub.textContent = text;
                 ur.appendChild(ub);
@@ -768,29 +768,29 @@
             }
             
             function addBotMessage(text, timestamp = Date.now(), buttons = [], skipHistory = false) {
-                const br = document.createElement('div';
+                const br = document.createElement('div');
                 br.className = 'chat-row bot';
                 
-                const ba = document.createElement('img';
+                const ba = document.createElement('img');
                 ba.className = 'chat-avatar';
                 ba.src = '/chatbot.svg';
                 ba.alt = 'Bot';
                 
-                const bb = document.createElement('div';
+                const bb = document.createElement('div');
                 bb.className = 'chat-bubble-bot';
                 
                 // Add message text
-                const textDiv = document.createElement('div';
+                const textDiv = document.createElement('div');
                 textDiv.className = 'bot-message-text';
-                textDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>';
+                textDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
                 bb.appendChild(textDiv);
                 
                 // Quick action buttons
                 if(buttons && buttons.length > 0) {
-                    const btnContainer = document.createElement('div';
+                    const btnContainer = document.createElement('div');
                     btnContainer.className = 'quick-action-buttons';
                     buttons.forEach(btnText => {
-                        const btn = document.createElement('button';
+                        const btn = document.createElement('button');
                         btn.className = 'quick-action-btn';
                         btn.textContent = btnText;
                         btn.addEventListener('click', () => {
@@ -815,7 +815,7 @@
             }
             
             function escapeHtml(text) {
-                const div = document.createElement('div';
+                const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
@@ -834,15 +834,15 @@
                 addUserMessage(text);
                 
                 // Show typing indicator
-                const br = document.createElement('div';
+                const br = document.createElement('div');
                 br.className = 'chat-row bot typing-indicator';
-                const ba = document.createElement('img';
+                const ba = document.createElement('img');
                 ba.className = 'chat-avatar';
                 ba.src = '/chatbot.svg';
                 ba.alt = 'Bot';
-                const bb = document.createElement('div';
+                const bb = document.createElement('div');
                 bb.className = 'chat-bubble-bot';
-                const ell = document.createElement('div';
+                const ell = document.createElement('div');
                 ell.className = 'typing';
                 ell.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
                 bb.appendChild(ell);
@@ -871,7 +871,7 @@
             
             // Clear old localStorage chat history on page load to show fresh welcome
             if(localStorage.getItem('viu_chat_history')) {
-                localStorage.removeItem('viu_chat_history';
+                localStorage.removeItem('viu_chat_history');
                 chatState.conversationHistory = [];
             }
         })();
@@ -880,14 +880,14 @@
         function goToPage(pageId, progress) {
             // Hide all pages EXCEPT splash screen, chatbot overlay, and floating button
             document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
-            document.getElementById(pageId).classList.remove('hidden-page';
+            document.getElementById(pageId).classList.remove('hidden-page');
             if(progress !== undefined) updateProgress(progress);
             lucide.createIcons();
         }
 
         function goBack(pageId) {
             document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
-            document.getElementById(pageId).classList.remove('hidden-page';
+            document.getElementById(pageId).classList.remove('hidden-page');
             if(pageId === 'user-details-page') updateProgress(0);
             if(pageId === 'privacy-page') updateProgress(8);
             if(pageId === 'genre-page') updateProgress(17);
@@ -896,18 +896,18 @@
         }
 
         function updateProgress(percent) {
-            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = percent + '%';
-            document.querySelectorAll('.progress-text').forEach(el => el.innerText = percent + '%';
+            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = percent + '%');
+            document.querySelectorAll('.progress-text').forEach(el => el.innerText = percent + '%');
         }
 
         // ==================== 5. FLOW LOGIC ====================
         function handlePrivacyContinue() {
-            if(!document.getElementById('privacy-check').checked) return alert('Please accept privacy policy.';
+            if(!document.getElementById('privacy-check').checked) return alert('Please accept privacy policy.');
             goToPage('genre-page', 17);
         }
 
         function toggleGenre(el) {
-            el.classList.toggle('selected';
+            el.classList.toggle('selected');
             const text = el.innerText;
             if(selectedGenres.includes(text)) {
                 selectedGenres = selectedGenres.filter(g => g !== text);
@@ -925,7 +925,7 @@
         function loadQuestion() {
             const data = questions[currentQIndex];
             const num = currentQIndex + 1;
-            const qTitle = document.getElementById('q-title';
+            const qTitle = document.getElementById('q-title');
             
             document.getElementById('q-number').innerText = num < 10 ? `0${num}` : num;
             qTitle.innerText = data.title;
@@ -944,10 +944,10 @@
         }
 
         function renderStars(currentRating) {
-            const container = document.getElementById('star-container';
+            const container = document.getElementById('star-container');
             container.innerHTML = '';
             for (let i = 1; i <= 5; i++) {
-                const starDiv = document.createElement('div';
+                const starDiv = document.createElement('div');
                 const isFilled = i <= currentRating;
                 const fillColor = isFilled ? '#F6BE00' : '#E5E7EB'; 
                 const iconClass = isFilled ? 'star-icon active' : 'star-icon';
@@ -960,7 +960,7 @@
         }
 
         function previewStars(hoverIndex) {
-            const svgs = document.querySelectorAll('#star-container svg';
+            const svgs = document.querySelectorAll('#star-container svg');
             svgs.forEach((svg, idx) => {
                 if (idx < hoverIndex) { svg.style.fill = '#F6BE00'; svg.style.color = '#F6BE00'; } 
                 else { svg.style.fill = '#E5E7EB'; svg.style.color = '#E5E7EB'; }
@@ -971,11 +971,11 @@
             if(currentQIndex < questions.length - 1) {
                 currentQIndex++;
                 loadQuestion();
-                const mainContent = document.querySelector('#question-page .fade-in';
+                const mainContent = document.querySelector('#question-page .fade-in');
                 if(mainContent) {
-                    mainContent.classList.remove('fade-in';
+                    mainContent.classList.remove('fade-in');
                     void mainContent.offsetWidth; 
-                    mainContent.classList.add('fade-in';
+                    mainContent.classList.add('fade-in');
                 }
             } else {
                 goToPage('final-page', 95);
@@ -983,7 +983,7 @@
         }
 
         function handleQuestionBack() {
-            if(currentQIndex > 0) { currentQIndex--; loadQuestion(); } else { goBack('genre-page'; }
+            if(currentQIndex > 0) { currentQIndex--; loadQuestion(); } else { goBack('genre-page'); }
         }
 
         function handleFinalBack() {
@@ -993,13 +993,13 @@
         }
 
         function goToSummary() {
-            const listContainer = document.getElementById('summary-list';
+            const listContainer = document.getElementById('summary-list');
             listContainer.innerHTML = ''; 
             questions.forEach((q, index) => {
                 const num = index + 1;
                 const numStr = num < 10 ? `0${num}` : num;
                 const rating = q.rating || 0; 
-                const row = document.createElement('div';
+                const row = document.createElement('div');
                 row.className = 'flex justify-between items-center py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors';
                 row.innerHTML = `<div class="text-gray-500 font-medium text-lg"><span class="font-bold text-gray-400 mr-2">${numStr}.</span> ${q.title}</div><div class="flex items-center gap-1 text-viu-yellow font-bold text-xl"><span>${rating}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#F6BE00" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>`;
                 listContainer.appendChild(row);
@@ -1030,13 +1030,13 @@
                 });
                 if(!res.ok){
                     const msg = await res.text();
-                    showToast('error', msg || 'Failed to submit';
+                    showToast('error', msg || 'Failed to submit');
                     return;
                 }
                 // Also persist locally to support admin listing fallback
                 try {
                     const key = 'viu_submissions';
-                    const arr = JSON.parse(localStorage.getItem(key) || '[]';
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
                     const withId = Object.assign({ id: Date.now().toString() }, payload);
                     arr.push(withId);
                     localStorage.setItem(key, JSON.stringify(arr));
@@ -1045,7 +1045,7 @@
                 showToast('error','Network error while submitting';
                 return;
             }
-            goToPage('thank-you-page';
+            goToPage('thank-you-page');
         }
 
         function resetSurvey() {
@@ -1080,34 +1080,34 @@
             buildCountryDropdown();
         });
         function buildCountryDropdown(){
-            const listEl = document.getElementById('country-list';
+            const listEl = document.getElementById('country-list');
             if(!listEl) return;
             listEl.innerHTML = '';
             viuCountries.forEach(c => {
-                const li = document.createElement('li';
+                const li = document.createElement('li');
                 li.className = 'py-3 px-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-gray-700';
                 li.innerHTML = `<span class="fi fi-${c.iso2} flag-ico"></span><span class="flex-1">${c.name} - ${c.code}</span>`;
                 li.addEventListener('click', () => selectCountry(c));
                 listEl.appendChild(li);
             });
-            const trigger = document.getElementById('country-select-trigger';
+            const trigger = document.getElementById('country-select-trigger');
             trigger.addEventListener('click', toggleCountryDropdown);
             document.addEventListener('click', (e) => {
-                const wrap = document.getElementById('country-select-wrapper';
+                const wrap = document.getElementById('country-select-wrapper');
                 if(!wrap.contains(e.target)) {
-                    document.getElementById('country-dropdown').classList.add('hidden';
+                    document.getElementById('country-dropdown').classList.add('hidden');
                 }
             });
         }
         function toggleCountryDropdown(){
-            document.getElementById('country-dropdown').classList.toggle('hidden';
+            document.getElementById('country-dropdown').classList.toggle('hidden');
         }
         function selectCountry(c){
             document.getElementById('user-country').value = c.name;
-            const el = document.getElementById('country-selected-text';
+            const el = document.getElementById('country-selected-text');
             el.innerHTML = `<span class="fi fi-${c.iso2} flag-ico align-middle"></span> <span class="align-middle">${c.name} (${c.code})</span>`;
-            el.classList.remove('text-gray-400';
-            document.getElementById('country-dropdown').classList.add('hidden';
+            el.classList.remove('text-gray-400');
+            document.getElementById('country-dropdown').classList.add('hidden');
         }
     </script>
 </body>
