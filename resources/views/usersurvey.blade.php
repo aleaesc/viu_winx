@@ -422,7 +422,7 @@
                 questions.forEach(q => q.rating = 0);
             } else {
                 try {
-                    const res = await fetch('{{ url('/api/questions') }}', { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch("{{ url('/api/questions') }}", { headers: { 'Accept': 'application/json' } });
                     if (res.ok) {
                         const data = await res.json();
                         const list = (data && data.questions) ? data.questions : [];
@@ -564,191 +564,152 @@
                 return 'neutral';
             }
             
+            // Simplified chatbot function (removed reply() wrapper, robust includes matching)
             function localBot(text){
+                if(!text) return 'Hi Viu Fam! Ask me anything about the survey or Viu.';
                 const q = text.toLowerCase().trim();
-                
-                // Detect Tagalog/Filipino
-                const isTagalog = /\b(kamusta|ano|kumusta|salamat|pano|paano|saan|kelan|sino|bakit|mga|lang|naman|talaga|sobra|grabe|diba|kasi|yung|yun|nung|pag|kung|ganun|ganyan|po|opo|oo|ka|mo|ko)\b/i.test(text);
-                
+                const isTagalog = /\b(kamusta|kumusta|musta|ano|paano|bakit|saan|kelan|salamat|thanks|gutom|tulog|malungkot|paalam|bye|presyo|magkano|sulit|palabas|bansa|kdrama|k-drama)\b/i.test(q);
+
                 // Greetings
-                if(q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('kamusta') || q.includes('kumusta') || q.includes('musta') || q.includes('morning') || q.includes('afternoon') || q.includes('sup') || q.includes('yo')) {
-                    if(isTagalog) {
-                        return 'Kamusta, Viu Fam! 👋 Ako ang iyong Virtual Assistant! Tanungin mo lang ako tungkol sa survey, Viu shows, o kahit ano! Paano kita matutulungan?';
-                    }
-                    return 'Hello, Viu Fam! 👋 Kamusta? I\'m your Virtual Assistant and I\'m here to help! Ask me anything - about the survey, Viu content, or just chat! What\'s up? 😊';
+                if(['hi','hello','hey','kamusta','kumusta','musta','yo','sup','good morning','good afternoon','good evening'].some(k=>q.includes(k))) {
+                    return isTagalog
+                        ? 'Kamusta, Viu Fam! 👋 Ako ang iyong virtual assistant. Tanong ka lang tungkol sa survey, Viu shows, o kahit random. Ano gusto mo malaman?'
+                        : 'Hello, Viu Fam! 👋 I\'m your virtual assistant. Ask me anything about the survey, Viu content, countries, pricing, or just chat! What\'s up?';
                 }
                 
-                // Survey questions - bilingual
-                if(q.includes('survey') && (q.includes('start') || q.includes('begin') || q.includes('take') || q.includes('simula') || q.includes('paano'))) {
-                    if(isTagalog) {
-                        return 'Para magsimula ng survey: 1) I-click ang "Start Survey" sa welcome screen, 2) Piliin ang bansa mo, 3) Accept privacy policy, 4) Piliin favorite genres mo, tapos i-rate mo ang 10 categories! Easy lang, Viu Fam! 💪';
-                    }
-                    return 'Easy peasy! To start the survey: 1) Click "Start Survey" on the welcome screen, 2) Select your country, 3) Accept the privacy policy, 4) Choose your favorite genres, then rate your experience across 10 categories! Takes just 5 mins! ⏱️';
+                // Survey help
+                if(q.includes('survey') && (q.includes('start') || q.includes('begin') || q.includes('how') || q.includes('paano') || q.includes('simula'))) {
+                    return isTagalog
+                        ? 'Para magsimula: 1) Click "Start Survey" 2) Piliin bansa 3) Accept privacy 4) Piliin genres 5) I-rate ang 10 categories. 3-5 minutes lang.'
+                        : 'To start: 1) Click "Start Survey" 2) Pick country 3) Accept privacy 4) Choose genres 5) Rate 10 categories. Takes 3–5 minutes.';
                 }
-                if(q.includes('question') || q.includes('tanong') || q.includes('ano ang')) {
-                    if(isTagalog) {
-                        return 'May 10 questions sa survey, Viu Fam! ⭐\n\n1. Video Quality - HD ba?\n2. App Performance - Mabilis ba?\n3. Content Library - Marami bang shows?\n4. Subtitle Quality - Okay ba translation?\n5. User Interface - Ganda ng design?\n6. Search - Madali hanapin shows?\n7. Recommendations - Swak suggestions?\n8. Offline Download - Pwede download?\n9. Customer Support - Helpful ba?\n10. Value for Money - Sulit ba?\n\nRate mo lang 1-5 stars each! Tapos pwede mag-comment kung gusto mo! 💯';
-                    }
-                    return 'Great question! The survey covers 10 awesome topics! 🌟\n\n1. Video Quality - Is it crispy HD?\n2. App Performance - Smooth or laggy?\n3. Content Library - Enough variety?\n4. Subtitle Quality - Readable?\n5. User Interface - Pretty design?\n6. Search Functionality - Easy to find?\n7. Recommendations - Good suggestions?\n8. Offline Download - Works well?\n9. Customer Support - Helpful?\n10. Value for Money - Worth it?\n\nJust rate 1-5 stars for each! Plus optional comments at the end! 😎';
+                if(q.includes('question') || q.includes('tanong')) {
+                    return isTagalog
+                        ? 'May 10 survey topics: Quality, Performance, Library, Subtitles, UI, Search, Recommendations, Offline Download, Support, Value. Rate 1–5 stars.'
+                        : 'There are 10 survey topics: Quality, Performance, Library, Subtitles, UI, Search, Recommendations, Offline Download, Support, Value. Rate 1–5 stars.';
                 }
                 if(q.includes('why') || q.includes('bakit') || q.includes('purpose')) {
-                    if(isTagalog) {
-                        return 'Para mas gawing swak para sa\'yo ang Viu, Viu Fam! 🎯 Gusto namin malaman kung ano gusto niyo - mas maraming K-dramas? Mas mabilis app? Better quality? Your voice matters talaga! Kayo ang boss dito! 👑';
-                    }
-                    return 'Your feedback makes Viu better for everyone! 🚀 We wanna know what you love, what needs fixing, and what new stuff you want! More K-dramas? Better app speed? Different content? You\'re literally shaping the future of Viu! How cool is that?! 🔥';
+                    return isTagalog
+                        ? 'Ginagamit namin feedback para i-improve content, app speed, features at overall experience mo. Boses mo = direksyon ng Viu.'
+                        : 'We use your feedback to improve content, app speed, features and overall experience. Your voice literally shapes Viu.';
                 }
-                if(q.includes('long') || q.includes('time') || q.includes('minutes') || q.includes('gaano katagal') || q.includes('ilang')) {
-                    if(isTagalog) {
-                        return '3-5 minutes lang, promise! ⚡ Kasing-bilis lang ng isang commercial break! Sagot mo lang 10 questions, tapos tapos na! Netflix and chill pa rin after! 😁';
-                    }
-                    return 'Super quick - just 3-5 minutes! ⚡ Literally the time it takes to make instant noodles! Answer 10 quick questions and you\'re done! Then back to binge-watching! 📺✨';
+                if(q.includes('long') || q.includes('time') || q.includes('minutes')) {
+                    return isTagalog ? '3–5 minutes lang ang survey.' : 'Survey takes only 3–5 minutes.';
                 }
-                if(q.includes('anonymous') || q.includes('privacy') || q.includes('data') || q.includes('private')) {
-                    if(isTagalog) {
-                        return 'Oo naman, secret lang yan! 🤫 100% anonymous unless gusto mo i-share email mo. Hindi namin ibibigay info mo kahit kanino!\n✅ Ratings and comments lang\n✅ Name/email optional\n✅ Confidential\n✅ Para lang sa improvement ng Viu\n\nTrust us, Viu Fam! 💯';
-                    }
-                    return 'Totally anonymous, don\'t worry! 🔒 Your secrets are safe with us! We won\'t share your info with anyone - not even our pet goldfish! 🐠\n✅ Only stores ratings & comments\n✅ Name/email optional\n✅ Super confidential\n✅ Used ONLY to make Viu better\n\nPinky promise! 🤙';
+                if(q.includes('anonymous') || q.includes('privacy') || q.includes('data')) {
+                    return isTagalog
+                        ? 'Anonymous ang ratings/comments. Name/email optional. Ginagamit lang para i-improve Viu.'
+                        : 'Ratings/comments are anonymous. Name/email optional. Used only to improve Viu.';
                 }
                 
-                // About Viu - fun and bilingual
-                if((q.includes('what') && q.includes('viu')) || q.includes('about') || q.includes('ano ang viu') || q.includes('who') && q.includes('you')) {
-                    if(isTagalog) {
-                        return 'Ako si Viu! 🎉 Pinakamagandang streaming service para sa Asian content! May K-dramas, Thai shows, anime, movies - lahat nandito! Think Netflix pero puro Asian hits! Galing Korea, Japan, Thailand, China - fresh episodes pa! Saan ka pa?! 🔥';
-                    }
-                    return 'Viu is like your bestie who knows ALL the best Asian shows! 🎬✨ We\'re the ultimate streaming service for K-dramas, Thai lakorn, anime, Asian movies, and exclusive originals! Think of us as Netflix\'s cool Asian cousin! 😎 Fresh from Korea, Japan, Thailand, and more - we got the tea! ☕';
+                // About Viu / identity
+                if((q.includes('what') && q.includes('viu')) || q.includes('ano ang viu') || (q.includes('who') && q.includes('you'))) {
+                    return isTagalog
+                        ? 'Viu: streaming para sa Asian content – K-dramas, Thai, anime, movies, exclusives. Focus sa fresh episodes.'
+                        : 'Viu: streaming for Asian content – K-dramas, Thai dramas, anime, movies, exclusives. Fresh episodes fast.';
                 }
-                if(q.includes('content') || q.includes('watch') || q.includes('show') || q.includes('series') || q.includes('movie') || q.includes('palabas') || q.includes('panuorin')) {
-                    if(isTagalog) {
-                        return 'Grabe, dami namin! 🤩\n\n📺 Latest K-dramas - kilig to the bones!\n🎬 Asian movies - award-winning pa!\n🎭 Variety shows - super funny!\n🌌 Anime - para sa mga otaku!\n🇹🇭 Thai dramas - LSS sa OST!\n⭐ Viu Originals - exclusive satin!\n🎪 Chinese dramas - epic!\n\nPopular ngayon: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, Alchemy of Souls! Binge-worthy lahat! 🍿';
-                    }
-                    return 'Oh man, where do I even start?! 🎉\n\n📺 K-dramas - ALL the feels!\n🎬 Asian cinema - Oscar-worthy stuff!\n🎭 Variety shows - laugh till you cry!\n🌌 Anime - for the culture!\n🇹🇭 Thai dramas - chef\'s kiss!\n⭐ Viu Originals - can\'t find anywhere else!\n🎪 C-dramas - epic storylines!\n\nTrending now: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, My Name! Pure fire! 🔥🍿';
+                if(q.includes('content') || q.includes('watch') || q.includes('show') || q.includes('movie') || q.includes('palabas')) {
+                    return isTagalog
+                        ? 'Content: K-dramas, Thai dramas, anime, Asian movies, variety, Viu Originals. Halimbawa: True Beauty, Vincenzo, Hometown Cha-Cha-Cha.'
+                        : 'Content: K-dramas, Thai dramas, anime, Asian movies, variety, Viu Originals. Examples: True Beauty, Vincenzo, Hometown Cha-Cha-Cha.';
                 }
-                if(q.includes('kdrama') || q.includes('korean') || q.includes('k-drama') || q.includes('korea')) {
-                    if(isTagalog) {
-                        return 'K-drama heaven tayo dito, Viu Fam! 💕 Lahat ng latest episodes, meron! Halos kasabay pa ng Korea! May subtitles pa in different languages! From kilig romance hanggang action-packed thriller - kompleto! Bet mo ba yung may second lead syndrome? Meron! Yung nakakaiyak? Andito! Mas bet mo comedy? Dami rin! 😭😂💘';
-                    }
-                    return 'Viu is basically K-drama paradise! 💕 We got ALL the latest eps, sometimes just hours after Korea! With subs in multiple languages! Whether you want butterfly-in-stomach romance 🦋, action-packed thrillers 🔪, or ugly-cry melodramas 😭 - we serve it all! Second lead syndrome? We invented it! 😂';
+                if(q.includes('kdrama') || q.includes('k-drama') || q.includes('korean')) {
+                    return isTagalog
+                        ? 'K-drama hub: mabilis labas ng episodes, maraming genre (romance, thriller, comedy), may subtitles.'
+                        : 'K-drama hub: fast episode releases, many genres (romance, thriller, comedy), multilingual subtitles.';
                 }
-                if(q.includes('original') || q.includes('exclusive') || q.includes('viu original')) {
-                    if(isTagalog) {
-                        return 'Viu Originals = shows na EXCLUSIVE lang satin! 🌟 Ibig sabihin, hindi mo makikita sa ibang platform! Top Asian celebrities and fresh storytelling! Mga bagong concepts na swak sa taste mo! Proud kami dito, Viu Fam! 💪✨';
-                    }
-                    return 'Viu Originals are our babies! 🌟 Shows you CAN\'T watch anywhere else - exclusive to Viu only! We work with top Asian talent to create fresh, innovative content! It\'s like indie films but for TV series! Super unique and binge-worthy! 🎬💎';
+                if(q.includes('original') || q.includes('exclusive')) {
+                    return isTagalog
+                        ? 'Viu Originals: exclusive shows na hindi mo makikita sa ibang platform.'
+                        : 'Viu Originals are exclusive shows you won\'t find elsewhere.';
                 }
                 
-                // Countries - bilingual
                 if(q.includes('country') || q.includes('countries') || q.includes('available') || q.includes('region') || q.includes('where') || q.includes('saan') || q.includes('bansa')) {
-                    if(isTagalog) {
-                        return 'Meron kami sa maraming bansa, Viu Fam! 🌏\n\n🇵🇭 Philippines - Kabayan!\n🇭🇰 Hong Kong\n🇸🇬 Singapore\n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nKung nandito ka, pwede ka manood! Swerte mo! 🎉';
-                    }
-                    return 'We\'re EVERYWHERE in Asia (and beyond)! 🌏\n\n🇵🇭 Philippines - Mabuhay!\n🇭🇰 Hong Kong\n🇸🇬 Singapore  \n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nIf you\'re in any of these places, you\'re in luck! 🍀✨';
+                    return isTagalog
+                        ? 'Available: Philippines, Hong Kong, Singapore, Malaysia, Indonesia, Thailand, ilang Middle East countries.'
+                        : 'Available in: Philippines, Hong Kong, Singapore, Malaysia, Indonesia, Thailand and several Middle East countries.';
                 }
                 
-                // Pricing - fun and bilingual
-                if(q.includes('price') || q.includes('pricing') || q.includes('subscription') || q.includes('plan') || q.includes('cost') || q.includes('free') || q.includes('how much') || q.includes('magkano') || q.includes('presyo')) {
-                    if(isTagalog) {
-                        return 'May FREE and Premium kami! 💎\n\n✅ FREE - May ads pero okay na rin!\n✅ PREMIUM - Walang ads, HD quality, pwede download, early access!\n\nPresyo per month:\n🇵🇭 Philippines: PHP 149 - mas mura pa sa milk tea! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90  \n🇹🇭 Thailand: THB 99\n\nSulit na sulit! Check viu.com for exact price sayo! 💰';
-                    }
-                    return 'We got options for every budget! 💰\n\n✅ FREE - With ads (still awesome!)\n✅ PREMIUM - No ads, HD, downloads, early access!\n\nPricing per month:\n🇵🇭 Philippines: PHP 149 - cheaper than coffee! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90\n🇹🇭 Thailand: THB 99\n\nTotally worth it! Check viu.com for your region! 🎯';
+                if(q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('magkano') || q.includes('presyo')) {
+                    return isTagalog
+                        ? 'Plans: FREE (may ads) at PREMIUM (walang ads + HD + download). Halimbawa PH: PHP149/mo. Check viu.com for exact.'
+                        : 'Plans: FREE (ads) and PREMIUM (no ads + HD + download). Example PH: PHP149/mo. Check viu.com for region details.';
                 }
-                if(q.includes('premium') || q.includes('benefit') || q.includes('advantage') || q.includes('perks')) {
-                    if(isTagalog) {
-                        return 'Premium perks sobrang dami! 🎁\n\n✨ Walang ads - uninterrupted feels!\n📱 Download - panuorin offline, perfect sa byahe!\n🎥 HD quality 1080p - crystal clear!\n⚡ Early access - pinakauna ka manood ng new ep!\n👥 Multiple devices - share with fam!\n🌏 All your gadgets - phone, tablet, TV!\n🔄 Auto-sync - tuloy mo lang kahit saan!\n\nWorth it ang upgrade, promise! 🔥';
-                    }
-                    return 'Premium perks are INSANE! 🚀\n\n✨ Zero ads - pure viewing bliss!\n📱 Download shows - watch on the plane!\n🎥 HD 1080p - crispy clear quality!\n⚡ Early access - be the first to watch!\n👥 Multiple devices - share with squad!\n🌏 Cross-device - phone, tablet, TV!\n🔄 Auto-sync - pick up where you left!\n\nSeriously worth the upgrade! 💎';
+                if(q.includes('premium') || q.includes('benefit') || q.includes('perk') || q.includes('advantage')) {
+                    return isTagalog
+                        ? 'Premium: walang ads, HD up to 1080p, downloads, early access episodes.'
+                        : 'Premium: no ads, HD up to 1080p, downloads, early access episodes.';
                 }
                 
-                // Support & contact
-                if(q.includes('contact') || q.includes('support') || q.includes('help') || q.includes('customer')) {
-                    return 'Need help? 📧\n\n📧 Email: support@viu.com\n🌐 Visit: VIU Help Center at viu.com\n💬 Live Chat: Available in app\n📞 Phone support varies by country\n\nFor this survey, you can share feedback in the final comment section!';
+                if(q.includes('contact') || q.includes('support') || q.includes('help')) {
+                    return isTagalog
+                        ? 'Support: email support@viu.com o Help Center sa viu.com. May in-app live chat sa ilang region.'
+                        : 'Support: email support@viu.com or visit the Help Center at viu.com. Some regions have in-app live chat.';
                 }
                 
                 // Features
                 if(q.includes('download') || q.includes('offline')) {
-                    return 'Yes! Viu Premium members can download shows and movies for offline viewing - perfect for travel or saving data! 📱✈️\n\nHow to download:\n1. Find your show\n2. Tap download icon\n3. Watch anytime, anywhere!\n\nFeature availability varies by content and region.';
+                    return isTagalog ? 'Downloads (offline) ay nasa Premium plan.' : 'Offline downloads are available on the Premium plan.';
                 }
                 if(q.includes('subtitle') || q.includes('language')) {
-                    return 'Viu provides subtitles in multiple languages! 🌏\n\nAvailable languages:\n• English\n• 中文 Chinese\n• Bahasa Indonesia\n• ภาษาไทย Thai\n• Tagalog\n• Arabic (select regions)\n\nLanguage availability depends on your region and content!';
+                    return isTagalog ? 'May subtitles: English, Tagalog, Thai, Indonesian, minsan Chinese/Arabic depende sa region.' : 'Subtitles include English, Tagalog, Thai, Indonesian, sometimes Chinese/Arabic depending on region.';
                 }
                 if(q.includes('device') || q.includes('platform')) {
-                    return 'Watch Viu on ALL your devices! 📱💻📺\n\n✅ Mobile: iOS & Android\n✅ Web: Any browser at viu.com\n✅ Smart TV: Samsung, LG, Android TV\n✅ Streaming: Apple TV, Chromecast, Fire TV\n✅ Game Console: Select models\n\nSync your progress across all devices automatically!';
+                    return isTagalog ? 'Supported: mobile apps, web browser, ilang smart TV & casting devices.' : 'Supported: mobile apps, web browser, some smart TVs & casting devices.';
                 }
                 if(q.includes('quality') || q.includes('hd') || q.includes('resolution')) {
-                    return 'Viu Premium offers HD streaming up to 1080p! 🎥\n\n📺 Quality options:\n• Auto (adjusts to your connection)\n• 1080p HD (Premium)\n• 720p\n• 480p\n• 360p\n\nVideo quality depends on your internet speed, device, and subscription. We automatically adjust for the best experience!';
+                    return isTagalog ? 'HD up to 1080p sa Premium. Auto adjust depende sa internet.' : 'HD up to 1080p on Premium. Auto-adjusts based on connection.';
                 }
                 
-                // App issues
-                if(q.includes('buffering') || q.includes('slow') || q.includes('loading') || q.includes('lag')) {
-                    return 'Let\'s fix that buffering issue! 🔧\n\n1. Check your internet (need 5Mbps+ for HD)\n2. Close and restart the app\n3. Clear app cache\n4. Update to latest version\n5. Try lower quality setting\n\nStill having trouble? Contact support@viu.com';
+                // Technical issues
+                if(q.includes('buffering') || q.includes('slow') || q.includes('lag')) {
+                    return isTagalog ? 'Tips: check internet, restart app, clear cache, babaan quality kung kailangan.' : 'Tips: check internet, restart app, clear cache, lower quality if needed.';
                 }
-                if(q.includes('not working') || q.includes('error') || q.includes('bug') || q.includes('crash') || q.includes('broken')) {
-                    return 'Sorry to hear that! Let\'s troubleshoot: 🛠️\n\n1. Update the Viu app (very important!)\n2. Restart your device completely\n3. Check internet connection\n4. Clear cache & data\n5. Reinstall app if needed\n\nIf issue persists, email support@viu.com with:\n• Device model\n• App version\n• Screenshot of error';
+                if(q.includes('error') || q.includes('bug') || q.includes('crash') || q.includes('not working') || q.includes('broken')) {
+                    return isTagalog ? 'Subukan: update app, restart device, reinstall. Kung tuloy problema email support@viu.com.' : 'Try: update app, restart device, reinstall. If still broken email support@viu.com.';
                 }
                 
-                // Recommendations
                 if(q.includes('recommend') || q.includes('suggest') || q.includes('popular') || q.includes('trending') || q.includes('best')) {
-                    return 'Viu\'s recommendation engine suggests shows based on your viewing history! 🎬\n\n🔥 Currently Trending:\n• True Beauty (K-Drama)\n• Vincenzo (Action/Comedy)\n• Hometown Cha-Cha-Cha (Romance)\n• My Name (Thriller)\n• Alchemy of Souls (Fantasy)\n\nThe more you watch, the better our suggestions! You\'ll also rate our recommendations in this survey.';
+                    return isTagalog ? 'Sample trending: True Beauty, Vincenzo, Hometown Cha-Cha-Cha. Mas tumatama suggestions habang nanonood ka.' : 'Trending examples: True Beauty, Vincenzo, Hometown Cha-Cha-Cha. Recommendations improve the more you watch.';
                 }
                 
-                // Support
-                if(q.includes('support') || q.includes('help') || q.includes('contact') || q.includes('customer') || q.includes('tulong')) {
-                    if(isTagalog) {
-                        return 'Nandito kami para sayo! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com\n💬 Live Chat sa app\n📞 Phone support depende sa bansa\n\nPara sa survey, pwede ka mag-comment sa dulo! May tanong? Chat lang! 😊';
-                    }
-                    return 'We got your back! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com  \n💬 Live Chat in app\n📞 Phone support (varies by country)\n\nFor this survey, drop comments at the end! Need anything? Just holler! 😊';
+                if(q.includes('support') || q.includes('tulong')) {
+                    return isTagalog ? 'Suporta: email support@viu.com o Help Center. May live chat sa ilang region.' : 'Support: email support@viu.com or Help Center. Some regions have live chat.';
                 }
                 
-                // Thanks
                 if(q.includes('thank') || q.includes('salamat')) {
-                    if(isTagalog) {
-                        return 'Walang anuman, Viu Fam! 💛 Salamat din sa suporta mo! Keep watching and enjoying! Balik ka ulit ha! 👋✨';
-                    }
-                    return 'You\'re so welcome, Viu Fam! 💛 Thanks for being awesome! Keep streaming and stay entertained! Come back anytime! 👋✨';
+                    return isTagalog ? 'Walang anuman! Salamat din sa feedback mo.' : 'You\'re welcome! Thanks for your feedback.';
                 }
                 
-                // Fun random responses
                 if(q.includes('love') && (q.includes('you') || q.includes('u'))) {
-                    return 'Awww, love you too, Viu Fam! 💕 But not as much as you\'ll love our K-dramas! 😉✨';
+                    return isTagalog ? 'Love you rin, Viu Fam! 💕' : 'Love you too, Viu Fam! 💕';
                 }
                 if(q.includes('bye') || q.includes('goodbye') || q.includes('paalam')) {
-                    if(isTagalog) {
-                        return 'Bye, Viu Fam! 👋 Ingat ka! Balik ka ulit for more K-drama feels! See you! 💛';
-                    }
-                    return 'See you later, Viu Fam! 👋 Don\'t be a stranger! Come back for more K-drama tea! 💛✨';
+                    return isTagalog ? 'Ingat! Balik ka ulit.' : 'Take care! Come back anytime.';
                 }
                 if(q.includes('joke') || q.includes('funny') || q.includes('nakakatawa')) {
-                    return 'Why did the K-drama fan break up with their partner? Because they fell for the second male lead! 😂💔 Classic second lead syndrome! Want more? Watch our variety shows! 🎭';
+                    return isTagalog ? 'K-drama fan: lagi sa second lead 😂' : 'K-drama fan always falls for the second lead 😂';
                 }
-                if(q.includes('food') || q.includes('eat') || q.includes('hungry') || q.includes('kain') || q.includes('gutom')) {
-                    if(isTagalog) {
-                        return 'Gutom ka? 🍜 Panoorin mo muna K-drama habang kumakain! Perfect combo: ramyeon + Korean drama = instant happiness! Kakagutom din yung food sa shows namin! 😋🍿';
-                    }
-                    return 'Hungry? 🍜 Perfect time for K-drama + snacks combo! Seriously though, the food in our shows will make you even hungrier! Ramyeon anyone? 😋🍿';
+                if(q.includes('food') || q.includes('eat') || q.includes('hungry') || q.includes('gutom') || q.includes('kain')) {
+                    return isTagalog ? 'K-drama + ramyeon = solid combo.' : 'K-drama + ramen = elite combo.';
                 }
-                if(q.includes('sad') || q.includes('crying') || q.includes('malungkot')) {
-                    if(isTagalog) {
-                        return 'Aww bakit malungkot ka? 🥺 Panoorin mo comedy shows namin or kilig K-dramas! Guaranteed good vibes! Kailangan mo ng virtual hug? *sends hug* 🤗💛 You got this, Viu Fam!';
-                    }
-                    return 'Oh no, why the sad face? 🥺 Watch our rom-coms for instant serotonin boost! Or cry it out with a melodrama - therapeutic yan! *Virtual hug incoming* 🤗💛 You got this, Viu Fam!';
+                if(q.includes('sad') || q.includes('cry') || q.includes('malungkot')) {
+                    return isTagalog ? 'Try light rom-com para gumaan pakiramdam.' : 'Try a light rom-com to boost your mood.';
                 }
                 if(q.includes('sleep') || q.includes('tulog') || q.includes('tired')) {
-                    if(isTagalog) {
-                        return 'Pagod ka? 😴 Dapat matulog na... PERO wait, one more episode lang! Yan palagi sinasabi natin! 😂 Kidding! Rest ka muna, Viu Fam! Shows namin dito pa rin bukas! 💤✨';
-                    }
-                    return 'Tired? 😴 You should sleep... BUT WAIT, one more episode! That\'s what we all say! 😂 Kidding! Get some rest, Viu Fam! Our shows will still be here tomorrow! Sweet dreams! 💤✨';
+                    return isTagalog ? 'Pahinga ka muna, pwede mong ipagpatuloy bukas.' : 'Rest first, you can resume tomorrow.';
                 }
                 if(q.includes('cute') || q.includes('gwapo') || q.includes('maganda')) {
-                    return 'Uy, thanks sa compliment! 😊 But wait till you see our K-drama actors! Sobrang gwapo and maganda! Pang-cover ng magazine! 😍✨ Check out our shows!';
+                    return isTagalog ? 'Salamat! Panoorin mo casts sa dramas – mas gwapo/maganda.' : 'Thanks! Check the drama casts – even prettier.';
                 }
                 if(q.includes('weather') || q.includes('panahon')) {
-                    return 'Perfect weather para mag-binge watch! ☁️ Whether sunny or rainy, Viu is always a good idea! Stay cozy indoors with our shows! 🌈📺';
+                    return isTagalog ? 'Anumang panahon, pwede mag-stream.' : 'Any weather is streaming weather.';
                 }
                 
-                // Default - fun and helpful
-                if(isTagalog) {
-                    return 'Hmm, hindi ko sure kung gets kita pero game ako sumagot! 😄 Tanong mo lang ako about:\n\n📋 Survey - paano magsimula, ano tanong\n📺 Viu shows - K-drama, anime, movies  \n🌏 Available countries\n💎 Premium benefits\n📱 Tech support\n\nO kahit random lang! Chat tayo, Viu Fam! Kamusta? 💛';
-                }
-                return 'Interesting question! 😄 I\'m here to chat about anything! Try asking me about:\n\n📋 The survey - how to start, what to expect\n📺 Viu content - K-dramas, anime, movies\n🌏 Where Viu is available  \n💎 Premium perks\n📱 Technical stuff\n\nOr just chat randomly - I\'m fun like that! What\'s on your mind, Viu Fam? ✨';
+                // Default fallback
+                return isTagalog
+                    ? 'Pwede mong itanong: survey, content, countries, pricing, premium, teknikal issues, recommendations.'
+                    : 'You can ask about: survey, content, countries, pricing, premium, tech issues, recommendations.';
             }
 
             // Message rendering helpers
@@ -1023,7 +984,7 @@
                 submitted_at: new Date().toISOString()
             };
             try {
-                const res = await fetch('{{ url('/api/public/responses') }}', {
+                const res = await fetch("{{ url('/api/public/responses') }}", {
                     method: 'POST',
                     headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
                     body: JSON.stringify(payload)
@@ -1042,7 +1003,7 @@
                     localStorage.setItem(key, JSON.stringify(arr));
                 } catch(_) { /* ignore local storage errors */ }
             } catch(e) {
-                showToast('error','Network error while submitting';
+                showToast('error','Network error while submitting');
                 return;
             }
             goToPage('thank-you-page');
@@ -1053,7 +1014,7 @@
             currentQIndex = 0;
             selectedGenres = [];
             document.querySelectorAll('input').forEach(input => { if(input.type === 'checkbox') input.checked = false; else input.value = ''; });
-            document.querySelectorAll('textarea').forEach(t => t.value = '';
+            document.querySelectorAll('textarea').forEach(t => t.value = '');
             document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('selected'));
             goToPage('welcome-page', 0);
         }
