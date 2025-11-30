@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIU Client Satisfaction Survey</title>
+    
+    <!-- Tailwind CSS & DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Removed Vite in dev to avoid manifest error; using public assets -->
+
+    <!-- Shared Toast Assets -->
+    <link rel="stylesheet" href="/toast.css">
+    <!-- Flag Icons for country flags -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.11.0/css/flag-icons.min.css">
+
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-color: #FAFAFA;
+        }
+
+        /* VIU Brand Colors */
+        .bg-viu-yellow { background-color: #F6BE00; }
+        .text-viu-yellow { color: #F6BE00; }
+        .border-viu-yellow { border-color: #F6BE00; }
+        .fill-viu-yellow { fill: #F6BE00; }
+        .stroke-viu-yellow { stroke: #F6BE00; }
+        .hover-bg-viu-dark:hover { background-color: #dca000; }
+         .bg-viu-dark-gray { background-color: #4B4B4B; }
+        .hover-bg-viu-gray-hover:hover { background-color: #333333; }
+
+        /* Utility */
+        .hidden-page { display: none !important; }
+        .fade-out { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.5s ease; }
+        .fade-in { animation: fadeIn 0.8s ease-in forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glow-bg { background: radial-gradient(circle, rgba(246,190,0,0.15) 0%, rgba(255,255,255,0) 70%); }
+
+        /* Survey Styles */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+            background-color: #F6BE00; transition: opacity 0.5s ease-in-out, visibility 0.5s;
+        }
+
+        .input-minimal {
+            background: transparent; border: none; border-bottom: 2px solid #D1D5DB;
+            border-radius: 0; padding: 0; font-size: 1.125rem; color: #374151; transition: border-color 0.3s ease;
+        }
+        .input-minimal:focus { outline: none; border-bottom-color: #F6BE00; box-shadow: none; }
+        .label-minimal { text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; color: #9CA3AF; font-weight: 600; margin-bottom: 0.25rem; }
+
+        .progress-container { width: 150px; height: 6px; background-color: #E5E7EB; border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: #F6BE00; width: 0%; transition: width 0.5s ease-in-out; }
+
+        .star-icon { width: 3.5rem; height: 3.5rem; color: #E5E7EB; fill: #E5E7EB; transition: all 0.2s ease; cursor: pointer; }
+        .star-icon.active { color: #F6BE00; fill: #F6BE00; }
+        
+        .big-number { font-size: 8rem; line-height: 1; font-weight: 900; letter-spacing: -0.05em; }
+        @media (max-width: 768px) { .big-number { font-size: 5rem; margin-bottom: 1rem; } }
+
+        .checkbox-viu { width: 1.5rem; height: 1.5rem; border-radius: 0.3rem; border: 2px solid #9CA3AF; }
+        .checkbox-viu:checked { background-color: #F6BE00; border-color: #F6BE00; }
+        
+        .genre-pill { border: 1px solid #E5E7EB; background-color: white; color: #4B5563; padding: 0.75rem 1.5rem; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; font-weight: 500; user-select: none; }
+        .genre-pill:hover { border-color: #F6BE00; color: black; transform: translateY(-2px); }
+        .genre-pill.selected { background-color: #FFF8DC; border-color: #F6BE00; color: black; font-weight: 600; }
+
+        .btn-viu-continue { background-color: #D1D5DB; color: black; border: none; transition: all 0.3s ease; }
+        .btn-viu-continue:hover { background-color: #F6BE00; transform: scale(1.02); }
+
+        /* Chatbot Styles (Centered Modal) */
+        .chat-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            background-color: rgba(17, 24, 39, 0.45);
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+        .chat-overlay.visible { opacity: 1; pointer-events: auto; }
+
+        #chat-window {
+            width: 92%; max-width: 560px; height: 560px;
+            background: #ffffff; border-radius: 18px; overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.25);
+            display: flex; flex-direction: column;
+            transform: translateY(8px) scale(0.98); transition: transform 0.2s ease;
+        }
+        .chat-overlay.visible #chat-window { transform: translateY(0) scale(1); }
+        
+        .chat-header { 
+            background-color: #F6BE00; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; color: black;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        
+        .chat-body { flex: 1; padding: 18px; background-color: #FAFAFA; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+        
+        .chat-input-area { background: white; padding: 14px 16px; border-top: 1px solid #E5E7EB; display: flex; align-items: center; gap: 12px; }
+        .chat-input { flex-grow: 1; background: #F3F4F6; border-radius: 14px; padding: 14px 16px; font-size: 1rem; outline: none; color: #374151; box-shadow: inset 0 1px 0 rgba(255,255,255,0.7); }
+        
+        .chat-row { display: flex; align-items: flex-start; gap: 12px; }
+        .chat-row.bot { justify-content: flex-start; }
+        .chat-row.user { justify-content: flex-end; }
+        .chat-bubble-bot { 
+            display: inline-flex; align-items: center; gap: 10px; max-width: 85%;
+            background: #F3F4F6; color: #111827; padding: 12px 16px; border-radius: 18px;
+            font-size: 1rem; font-weight: 600; box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+        }
+        .chat-bubble-user {
+            position: relative; max-width: 85%; background: #FFFDF2; color: #111827; padding: 12px 16px; border-radius: 18px; font-weight: 600; border: 1px solid #FCE9A3; box-shadow: 0 6px 14px rgba(246,190,0,0.12), 0 3px 8px rgba(0,0,0,0.05);
+        }
+        .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+        /* Typing indicator */
+        .typing {
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .typing .dot {
+            width: 6px; height: 6px; background: #9CA3AF; border-radius: 999px;
+            animation: bounce 1s infinite ease-in-out;
+        }
+        .typing .dot:nth-child(2){ animation-delay: .15s; }
+        .typing .dot:nth-child(3){ animation-delay: .3s; }
+        @keyframes bounce { 0%,80%,100%{ transform: translateY(0); opacity:.6 } 40%{ transform: translateY(-4px); opacity:1 } }
+        
+        /* Quick action buttons */
+        .quick-action-buttons {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+        }
+        .quick-action-btn {
+            background: #fff; border: 1px solid #F6BE00; color: #000; padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+        }
+        .quick-action-btn:hover {
+            background: #F6BE00; color: #000; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(246,190,0,0.3);
+        }
+        
+        .bot-message-text {
+            line-height: 1.6;
+        }
+        
+        /* Flag icon alignment */
+        .flag-ico { width: 20px; height: 15px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen relative">
+        <!-- Toast Stack (Bottom-right) -->
+        <div id="toast-stack" class="fixed right-6 bottom-6 z-[1000] flex flex-col gap-3"></div>
+
+    <!-- SPLASH -->
+    <div id="splash-screen"></div>
+
+    <!-- PAGE: WELCOME -->
+    <div id="welcome-page" class="w-full min-h-screen flex flex-col relative opacity-0 transition-opacity duration-1000 bg-white">
+        <div class="absolute top-6 left-6 md:top-10 md:left-10">
+            <svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center px-4">
+            <div class="w-full max-w-3xl flex flex-col items-center text-center glow-bg py-20 rounded-full">
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"><span class="text-black">Shape the</span><br><span class="text-viu-yellow">Viu Experience</span></h1>
+                <p class="mt-6 text-gray-500 text-lg md:text-xl max-w-2xl font-medium">Help us curate the next generation of Asian entertainment.</p>
+                <div class="mt-10 flex flex-col gap-4 w-full max-w-xs">
+                    <button onclick="goToPage('user-details-page', 0)" class="btn border-none bg-viu-yellow hover-bg-viu-dark text-black text-lg font-bold px-8 h-14 rounded-xl shadow-md transform transition hover:scale-105 flex items-center justify-center gap-2 group">Start Survey <i data-lucide="arrow-right" class="w-5 h-5"></i></button>
+                    <a href="/admin" class="btn bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 font-semibold h-12 rounded-xl shadow-sm flex items-center justify-center gap-2 no-underline"><i data-lucide="lock" class="w-4 h-4"></i>Admin Access</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: USER DETAILS -->
+    <div id="user-details-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="goBack('welcome-page')"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span class="progress-text text-viu-yellow">0%</span></div><div class="progress-container"><div class="progress-fill"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center w-full max-w-2xl px-8 fade-in -mt-20">
+            <h2 class="text-4xl font-bold text-black mb-16 text-center">Welcome to <span class="text-viu-yellow">viu</span></h2>
+            <form onsubmit="event.preventDefault(); goToPage('privacy-page', 8);" class="w-full flex flex-col gap-10">
+                <div class="form-control w-full">
+                    <label class="label-minimal">Country</label>
+                    <div class="relative" id="country-select-wrapper">
+                        <button type="button" id="country-select-trigger" class="w-full flex items-center justify-between bg-white border-b-2 border-gray-300 px-0 py-3 text-left rounded-none focus:outline-none focus:border-viu-yellow text-lg font-medium">
+                            <span id="country-selected-text" class="text-gray-400">Select country</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400"></i>
+                        </button>
+                        <div id="country-dropdown" class="absolute left-0 top-full mt-2 w-full max-h-72 overflow-y-auto bg-white rounded-xl shadow-xl border border-gray-200 hidden z-20">
+                            <ul id="country-list" class="divide-y divide-gray-100"></ul>
+                        </div>
+                        <input type="hidden" id="user-country" required />
+                    </div>
+                </div>
+                <div class="form-control w-full"><label class="label-minimal">Name (Optional)</label><input type="text" id="user-name" class="input input-minimal w-full" placeholder="Enter name"/></div>
+                <div class="form-control w-full"><label class="label-minimal">Email (Optional)</label><input type="email" id="user-email" class="input input-minimal w-full" placeholder="Enter email"/></div>
+                <div class="flex items-center justify-center gap-4 mt-8">
+                    <button type="button" onclick="goBack('welcome-page')" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+                    <button type="submit" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAGE: PRIVACY -->
+    <div id="privacy-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="goBack('user-details-page', 0)"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span class="progress-text text-viu-yellow">8%</span></div><div class="progress-container"><div class="progress-fill"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center w-full max-w-3xl px-4 fade-in -mt-20">
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 w-full border-l-[12px] border-viu-yellow">
+                <h2 class="text-3xl md:text-4xl font-bold text-black mb-6">Privacy Matters</h2>
+                <p class="text-gray-500 font-medium text-lg leading-relaxed mb-6">Your responses will remain anonymous unless you choose to share your details.</p>
+                <div class="bg-gray-100 rounded-lg p-4 flex items-center gap-4 cursor-pointer" onclick="document.getElementById('privacy-check').click()">
+                    <input type="checkbox" id="privacy-check" class="checkbox checkbox-viu bg-white"/>
+                    <label for="privacy-check" class="text-gray-600 font-semibold cursor-pointer">I accept the privacy policy</label>
+                </div>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-12">
+                <button type="button" onclick="goBack('user-details-page', 0)" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+                <button type="button" onclick="handlePrivacyContinue()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: GENRE -->
+    <div id="genre-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="goBack('privacy-page', 8)"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span class="progress-text text-viu-yellow">17%</span></div><div class="progress-container"><div class="progress-fill"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center w-full max-w-4xl px-4 fade-in -mt-20 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-black mb-3">What do you watch?</h2>
+            <p class="text-gray-500 text-lg font-medium mb-12">Select your favorite genres.</p>
+            <div class="flex flex-wrap justify-center gap-4 max-w-3xl">
+                <div class="genre-pill" onclick="toggleGenre(this)">K-Dramas</div>
+                <div class="genre-pill" onclick="toggleGenre(this)">Movies</div>
+                <div class="genre-pill" onclick="toggleGenre(this)">Variety Shows</div>
+                <div class="genre-pill" onclick="toggleGenre(this)">Anime</div>
+                <div class="genre-pill" onclick="toggleGenre(this)">Thai Drama</div>
+                <div class="genre-pill" onclick="toggleGenre(this)">Others</div>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-16">
+                <button type="button" onclick="goBack('privacy-page', 8)" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+                <button type="button" onclick="startQuestions()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: QUESTIONS -->
+    <div id="question-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="handleQuestionBack()"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span id="q-progress-text" class="progress-text text-viu-yellow">25%</span></div><div class="progress-container"><div id="q-progress-fill" class="progress-fill"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col md:flex-row items-center justify-center w-full max-w-5xl px-4 fade-in -mt-20">
+            <div class="flex-shrink-0 mr-0 md:mr-12 mb-6 md:mb-0"><h1 id="q-number" class="big-number text-black">01</h1></div>
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                <h2 id="q-title" class="text-4xl md:text-5xl font-bold text-black mb-2">Content Variety</h2>
+                <p id="q-subtitle" class="text-gray-500 text-lg md:text-xl mb-10">How fresh are the latest movies?</p>
+                <div class="flex flex-col w-fit mx-auto md:mx-0">
+                    <div class="flex gap-2 md:gap-4 mb-3" id="star-container"></div>
+                    <div class="flex justify-between w-full px-1 text-[10px] md:text-xs font-bold text-gray-400 tracking-widest uppercase"><span>Poor</span><span>Perfect</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full flex items-center justify-center gap-4 mb-10 md:mb-16">
+            <button type="button" onclick="handleQuestionBack()" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+            <button type="button" onclick="nextQuestion()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+        </div>
+    </div>
+
+    <!-- PAGE: FINAL -->
+    <div id="final-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="handleFinalBack()"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span class="progress-text text-viu-yellow">95%</span></div><div class="progress-container"><div class="progress-fill" style="width: 95%"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center w-full max-w-4xl px-4 fade-in -mt-20">
+            <div class="w-full max-w-3xl">
+                <h2 class="text-4xl font-bold text-black mb-8 text-left w-full">Final Thoughts?</h2>
+                <textarea id="final-comment" class="w-full h-64 p-8 rounded-[2rem] border border-gray-100 shadow-sm focus:shadow-md focus:outline-none focus:border-gray-200 resize-none text-xl text-gray-700 placeholder-gray-300 bg-white" placeholder="Tell us what we can do better..."></textarea>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-12">
+                <button type="button" onclick="handleFinalBack()" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+                <button type="button" onclick="goToSummary()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: SUMMARY -->
+    <div id="summary-page" class="w-full min-h-screen flex flex-col items-center bg-gray-50 relative hidden-page">
+        <div class="w-full flex justify-between items-center p-6 md:p-10">
+            <div class="cursor-pointer" onclick="goBack('final-page')"><svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="flex flex-col items-end gap-1"><div class="flex justify-between w-[150px] text-[10px] font-bold text-gray-400 uppercase"><span>Progress</span><span class="progress-text text-viu-yellow">100%</span></div><div class="progress-container"><div class="progress-fill" style="width: 100%"></div></div></div>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center w-full max-w-3xl px-4 fade-in -mt-10">
+            <h2 class="text-4xl font-bold text-black mb-8 text-center">Ready to Submit?</h2>
+            <div class="w-full bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="max-h-[60vh] overflow-y-auto p-6 md:p-8 space-y-0" id="summary-list"></div>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-8">
+                <button type="button" onclick="goBack('final-page')" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
+                <button type="button" onclick="submitSurvey()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">SUBMIT <i data-lucide="check" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: THANK YOU -->
+    <div id="thank-you-page" class="w-full min-h-screen flex flex-col items-center justify-center bg-white relative hidden-page">
+        <div class="absolute top-6 left-6 md:top-10 md:left-10">
+            <svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex-grow flex flex-col items-center justify-center text-center px-6 fade-in">
+            <div class="w-32 h-32 bg-viu-yellow rounded-full flex items-center justify-center mb-10 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 class="text-4xl md:text-5xl font-bold text-black mb-6">Thank you so much!</h2>
+            <p class="text-gray-500 text-xl font-medium mb-16">Your feedback has been recorded.</p>
+            <button onclick="resetSurvey()" class="text-viu-yellow font-bold text-lg tracking-widest uppercase border-b-2 border-viu-yellow pb-1 hover:text-yellow-500 hover:border-yellow-500 transition-colors">BACK TO HOME</button>
+        </div>
+    </div>
+
+    <!-- ==================== CHATBOT SECTION ==================== -->
+    
+    <!-- Chatbot Floating Button (Icon Image) -->
+    <div class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50">
+        <img src="/chatbot.svg" alt="Chat" class="w-16 h-16 cursor-pointer hover:scale-105 transition-transform" onclick="toggleChat()" />
+    </div>
+
+    <!-- Chatbot Modal Overlay (Centered) -->
+    <div id="chat-overlay" class="chat-overlay">
+        <div id="chat-window">
+            
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="flex items-center gap-2">
+                    <img src="/chatbot.svg" class="chat-avatar" alt="Bot" />
+                    <span class="font-extrabold text-base">Virtual Assistant</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="text-black hover:text-white"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                    <button class="text-black hover:text-white" onclick="toggleChat()"><i data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="chat-body">
+                <div class="chat-row bot">
+                    <img src="/chatbot.svg" class="chat-avatar" alt="Bot" />
+                    <div class="chat-bubble-bot"><span>Hello, Viu Fam! 👋 How can we help?</span></div>
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div class="chat-input-area">
+                <input type="text" placeholder="Ask something..." class="chat-input" />
+                <button class="text-viu-yellow hover:text-yellow-600">
+                    <i data-lucide="send" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Shared Toast helper
+        </script>
+        <script src="/toast.js"></script>
+        <script>
+        // Fallback if JS errors stop initial transition
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            const welcome = document.getElementById('welcome-page');
+            if (splash && !splash.classList.contains('fade-out')) {
+                splash.classList.add('fade-out');
+                if (welcome && welcome.style.opacity === '0') welcome.style.opacity = '1';
+            }
+        }, 2500);
+        // ==================== 1. INITIAL DATA ====================
+        const defaultQuestions = [
+            { title: "Content Variety", subtitle: "How fresh are the latest movies?", rating: 0 },
+            { title: "Streaming Quality", subtitle: "Are the videos smooth and clear?", rating: 0 },
+            { title: "Discovery & Search", subtitle: "Can you easily find new shows/movies?", rating: 0 },
+            { title: "Subtitles & Dubbing", subtitle: "Are the translations accurate and timely?", rating: 0 },
+            { title: "App Performance", subtitle: "How stable and fast is the app (loading times)?", rating: 0 },
+            { title: "Value for Money", subtitle: "Is the subscription worth the content quality?", rating: 0 },
+            { title: "Download Feature", subtitle: "How reliable and easy to use is offline viewing?", rating: 0 },
+            { title: "Ad Experience (If applicable)", subtitle: "Are the advertisements too disruptive?", rating: 0 },
+            { title: "Account Management", subtitle: "Is it easy to manage your subscription/devices?", rating: 0 },
+            { title: "Personalized Recommendations", subtitle: "How accurate are the suggestions based on your taste?", rating: 0 }
+        ];
+        
+        let questions = [];
+        let selectedGenres = [];
+        let currentQIndex = 0;
+
+        // ==================== 2. INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadQuestionsFromStorage(); // Load admin edits
+            // Immediately reveal welcome page and hide splash
+            const splash = document.getElementById('splash-screen');
+            const welcome = document.getElementById('welcome-page');
+            if (welcome) {
+                welcome.classList.remove('hidden-page');
+                welcome.style.opacity = '1';
+            }
+            if (splash) {
+                splash.classList.add('fade-out');
+            }
+        });
+
+        async function loadQuestionsFromStorage() {
+            const stored = localStorage.getItem('viu_survey_questions');
+            if (stored) {
+                questions = JSON.parse(stored);
+                questions.forEach(q => q.rating = 0);
+            } else {
+                try {
+                    const res = await fetch('{{ url('/api/questions') }}', { headers: { 'Accept': 'application/json' } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const list = (data && data.questions) ? data.questions : [];
+                        if (list.length) {
+                            questions = list.map(q => ({ id: q.id, title: q.title, subtitle: q.subtitle || '', rating: 0 }));
+                            return;
+                        }
+                    }
+                    questions = JSON.parse(JSON.stringify(defaultQuestions));
+                } catch (_) {
+                    questions = JSON.parse(JSON.stringify(defaultQuestions));
+                }
+            }
+        }
+
+        // ==================== 3. CHATBOT LOGIC ====================
+        const chatState = { 
+            opened: false,
+            conversationHistory: [], // Enhancement #1: Conversation memory
+            lastActivity: Date.now(),
+            userLanguage: 'en', // Enhancement #3: Multi-language
+            inactivityTimer: null, // Enhancement #8: Proactive suggestions
+            feedbackGiven: new Set() // Enhancement #14: Track feedback
+        };
+        
+        // Load persistent chat history from localStorage
+        if(localStorage.getItem('viu_chat_history')) {
+            try {
+                chatState.conversationHistory = JSON.parse(localStorage.getItem('viu_chat_history'));
+            } catch(e) {}
+        }
+        
+        function toggleChat() {
+            const overlay = document.getElementById('chat-overlay');
+            chatState.opened = !chatState.opened;
+            overlay.classList.toggle('visible', chatState.opened);
+            
+            // Start inactivity timer
+            if(chatState.opened) {
+                resetInactivityTimer();
+            }
+        }
+        
+        // Enhancement #15: Restore chat history
+        function restoreChatHistory() {
+            const body = document.querySelector('.chat-body');
+            body.innerHTML = ''; // Clear existing
+            chatState.conversationHistory.forEach(msg => {
+                if(msg.type === 'user') {
+                    addUserMessage(msg.text, msg.timestamp, true);
+                } else {
+                    addBotMessage(msg.text, msg.timestamp, msg.buttons, true);
+                }
+            });
+        }
+        
+        // Enhancement #8: Proactive suggestions
+        function resetInactivityTimer() {
+            clearTimeout(chatState.inactivityTimer);
+            chatState.lastActivity = Date.now();
+            chatState.inactivityTimer = setTimeout(() => {
+                if(chatState.opened && Date.now() - chatState.lastActivity > 30000) {
+                    const proactiveMessages = [
+                        'Need help? I can explain any question! 😊',
+                        'Stuck? Ask me about the survey or Viu features!',
+                        'I\'m here if you need assistance! Just type your question.',
+                    ];
+                    const msg = proactiveMessages[Math.floor(Math.random() * proactiveMessages.length)];
+                    addBotMessage(msg, Date.now(), ['Help with survey', 'Tell me about Viu']);
+                }
+            }, 30000);
+        }
+
+        // Optional: wire simple client send to backend
+        (function initChat() {
+            const body = document.querySelector('.chat-body');
+            const input = document.querySelector('.chat-input');
+            const sendBtn = document.querySelector('.chat-input-area button');
+            
+            // Enhancement #3: Multi-language support
+            const translations = {
+                en: {
+                    greeting: 'Hello, Viu Fam! 👋 I\'m your Virtual Assistant.',
+                    surveyStart: 'To start the survey: 1) Click "Start Survey" on the welcome screen',
+                    countries: 'Viu is available in: 🇭🇰 Hong Kong, 🇸🇬 Singapore, 🇲🇾 Malaysia',
+                    help: 'I can help with: 📋 Survey questions, 📺 What Viu offers'
+                },
+                zh: {
+                    greeting: '您好，Viu家族！👋 我是您的虚拟助手。',
+                    surveyStart: '开始调查：1) 点击欢迎屏幕上的"开始调查"',
+                    countries: 'Viu 可用地区: 🇭🇰 香港, 🇸🇬 新加坡, 🇲🇾 马来西亚',
+                    help: '我可以帮助: 📋 调查问题, 📺 Viu提供什么'
+                },
+                th: {
+                    greeting: 'สวัสดี Viu Family! 👋 ฉันคือผู้ช่วยเสมือนของคุณ',
+                    surveyStart: 'เริ่มแบบสำรวจ: 1) คลิก "เริ่มแบบสำรวจ" บนหน้าต้อนรับ',
+                    countries: 'Viu มีให้บริการใน: 🇭🇰 ฮ่องกง, 🇸🇬 สิงคโปร์, 🇲🇾 มาเลเซีย',
+                    help: 'ฉันสามารถช่วย: 📋 คำถามแบบสำรวจ, 📺 Viu มีอะไรบ้าง'
+                }
+            };
+            
+            // Enhancement #5: Fuzzy matching
+            function fuzzyMatch(text, patterns) {
+                const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                return patterns.some(p => {
+                    const pattern = p.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                    const distance = levenshteinDistance(normalized, pattern);
+                    return distance <= 2 || normalized.includes(pattern) || pattern.includes(normalized);
+                });
+            }
+            
+            function levenshteinDistance(a, b) {
+                const matrix = [];
+                for(let i = 0; i <= b.length; i++) matrix[i] = [i];
+                for(let j = 0; j <= a.length; j++) matrix[0][j] = j;
+                for(let i = 1; i <= b.length; i++) {
+                    for(let j = 1; j <= a.length; j++) {
+                        if(b.charAt(i-1) === a.charAt(j-1)) {
+                            matrix[i][j] = matrix[i-1][j-1];
+                        } else {
+                            matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, matrix[i][j-1] + 1, matrix[i-1][j] + 1);
+                        }
+                    }
+                }
+                return matrix[b.length][a.length];
+            }
+            
+            // Enhancement #9: Sentiment analysis
+            function detectSentiment(text) {
+                const negativeWords = ['bad', 'terrible', 'worst', 'hate', 'awful', 'frustrated', 'angry', 'broken', 'useless', 'stuck', 'help me', 'not working', 'cant', 'cannot', 'wont', 'doesnt'];
+                const q = text.toLowerCase();
+                const negativeCount = negativeWords.filter(w => q.includes(w)).length;
+                const hasMultipleExclamation = (text.match(/!/g) || []).length >= 2;
+                const hasAllCaps = text === text.toUpperCase() && text.length > 5;
+                
+                if(negativeCount >= 2 || hasMultipleExclamation || hasAllCaps) {
+                    return 'negative';
+                }
+                return 'neutral';
+            }
+            
+            function localBot(text){
+                const q = text.toLowerCase();
+                const reply = (s) => s;
+                
+                // Detect Tagalog/Filipino
+                const isTagalog = /\b(kamusta|ano|kumusta|salamat|pano|paano|saan|kelan|sino|bakit|mga|lang|naman|talaga|sobra|grabe|diba|kasi|yung|yun|nung|pag|kung|ganun|ganyan|po|opo|oo)\b/i.test(text);
+                
+                // Greetings - English and Tagalog
+                if(/^(hi|hello|hey|good morning|good afternoon|good evening|kamusta|kumusta|musta|sup|yo)\b/i.test(q)) {
+                    if(isTagalog) {
+                        return reply('Kamusta, Viu Fam! � Ako ang iyong Virtual Assistant! Tanungin mo lang ako tungkol sa survey, Viu shows, o kahit ano! Paano kita matutulungan?');
+                    }
+                    return reply('Hello, Viu Fam! 👋 Kamusta? I\'m your Virtual Assistant and I\'m here to help! Ask me anything - about the survey, Viu content, or just chat! What\'s up? 😊');
+                }
+                
+                // Survey questions - bilingual
+                if(q.includes('survey') && (q.includes('start') || q.includes('begin') || q.includes('take') || q.includes('simula') || q.includes('paano'))) {
+                    if(isTagalog) {
+                        return reply('Para magsimula ng survey: 1) I-click ang "Start Survey" sa welcome screen, 2) Piliin ang bansa mo, 3) Accept privacy policy, 4) Piliin favorite genres mo, tapos i-rate mo ang 10 categories! Easy lang, Viu Fam! 💪');
+                    }
+                    return reply('Easy peasy! To start the survey: 1) Click "Start Survey" on the welcome screen, 2) Select your country, 3) Accept the privacy policy, 4) Choose your favorite genres, then rate your experience across 10 categories! Takes just 5 mins! ⏱️');
+                }
+                if(q.includes('question') || q.includes('tanong') || q.includes('ano ang')) {
+                    if(isTagalog) {
+                        return reply('May 10 questions sa survey, Viu Fam! ⭐\n\n1. Video Quality - HD ba?\n2. App Performance - Mabilis ba?\n3. Content Library - Marami bang shows?\n4. Subtitle Quality - Okay ba translation?\n5. User Interface - Ganda ng design?\n6. Search - Madali hanapin shows?\n7. Recommendations - Swak suggestions?\n8. Offline Download - Pwede download?\n9. Customer Support - Helpful ba?\n10. Value for Money - Sulit ba?\n\nRate mo lang 1-5 stars each! Tapos pwede mag-comment kung gusto mo! 💯');
+                    }
+                    return reply('Great question! The survey covers 10 awesome topics! 🌟\n\n1. Video Quality - Is it crispy HD?\n2. App Performance - Smooth or laggy?\n3. Content Library - Enough variety?\n4. Subtitle Quality - Readable?\n5. User Interface - Pretty design?\n6. Search Functionality - Easy to find?\n7. Recommendations - Good suggestions?\n8. Offline Download - Works well?\n9. Customer Support - Helpful?\n10. Value for Money - Worth it?\n\nJust rate 1-5 stars for each! Plus optional comments at the end! 😎');
+                }
+                if(q.includes('why') || q.includes('bakit') || q.includes('purpose')) {
+                    if(isTagalog) {
+                        return reply('Para mas gawing swak para sa\'yo ang Viu, Viu Fam! 🎯 Gusto namin malaman kung ano gusto niyo - mas maraming K-dramas? Mas mabilis app? Better quality? Your voice matters talaga! Kayo ang boss dito! 👑');
+                    }
+                    return reply('Your feedback makes Viu better for everyone! 🚀 We wanna know what you love, what needs fixing, and what new stuff you want! More K-dramas? Better app speed? Different content? You\'re literally shaping the future of Viu! How cool is that?! 🔥');
+                }
+                if(q.includes('long') || q.includes('time') || q.includes('minutes') || q.includes('gaano katagal') || q.includes('ilang')) {
+                    if(isTagalog) {
+                        return reply('3-5 minutes lang, promise! ⚡ Kasing-bilis lang ng isang commercial break! Sagot mo lang 10 questions, tapos tapos na! Netflix and chill pa rin after! 😁');
+                    }
+                    return reply('Super quick - just 3-5 minutes! ⚡ Literally the time it takes to make instant noodles! Answer 10 quick questions and you\'re done! Then back to binge-watching! 📺✨');
+                }
+                if(q.includes('anonymous') || q.includes('privacy') || q.includes('data') || q.includes('private')) {
+                    if(isTagalog) {
+                        return reply('Oo naman, secret lang yan! 🤫 100% anonymous unless gusto mo i-share email mo. Hindi namin ibibigay info mo kahit kanino!\n✅ Ratings and comments lang\n✅ Name/email optional\n✅ Confidential\n✅ Para lang sa improvement ng Viu\n\nTrust us, Viu Fam! 💯');
+                    }
+                    return reply('Totally anonymous, don\'t worry! 🔒 Your secrets are safe with us! We won\'t share your info with anyone - not even our pet goldfish! 🐠\n✅ Only stores ratings & comments\n✅ Name/email optional\n✅ Super confidential\n✅ Used ONLY to make Viu better\n\nPinky promise! 🤙');
+                }
+                
+                // About Viu - fun and bilingual
+                if((q.includes('what') && q.includes('viu')) || q.includes('about') || q.includes('ano ang viu') || q.includes('who') && q.includes('you')) {
+                    if(isTagalog) {
+                        return reply('Ako si Viu! 🎉 Pinakamagandang streaming service para sa Asian content! May K-dramas, Thai shows, anime, movies - lahat nandito! Think Netflix pero puro Asian hits! Galing Korea, Japan, Thailand, China - fresh episodes pa! Saan ka pa?! 🔥');
+                    }
+                    return reply('Viu is like your bestie who knows ALL the best Asian shows! 🎬✨ We\'re the ultimate streaming service for K-dramas, Thai lakorn, anime, Asian movies, and exclusive originals! Think of us as Netflix\'s cool Asian cousin! 😎 Fresh from Korea, Japan, Thailand, and more - we got the tea! ☕');
+                }
+                if(q.includes('content') || q.includes('watch') || q.includes('show') || q.includes('series') || q.includes('movie') || q.includes('palabas') || q.includes('panuorin')) {
+                    if(isTagalog) {
+                        return reply('Grabe, dami namin! 🤩\n\n📺 Latest K-dramas - kilig to the bones!\n🎬 Asian movies - award-winning pa!\n🎭 Variety shows - super funny!\n🌌 Anime - para sa mga otaku!\n🇹🇭 Thai dramas - LSS sa OST!\n⭐ Viu Originals - exclusive satin!\n🎪 Chinese dramas - epic!\n\nPopular ngayon: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, Alchemy of Souls! Binge-worthy lahat! 🍿');
+                    }
+                    return reply('Oh man, where do I even start?! 🎉\n\n📺 K-dramas - ALL the feels!\n🎬 Asian cinema - Oscar-worthy stuff!\n🎭 Variety shows - laugh till you cry!\n🌌 Anime - for the culture!\n🇹🇭 Thai dramas - chef\'s kiss!\n⭐ Viu Originals - can\'t find anywhere else!\n🎪 C-dramas - epic storylines!\n\nTrending now: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, My Name! Pure fire! 🔥🍿');
+                }
+                if(q.includes('kdrama') || q.includes('korean') || q.includes('k-drama') || q.includes('korea')) {
+                    if(isTagalog) {
+                        return reply('K-drama heaven tayo dito, Viu Fam! 💕 Lahat ng latest episodes, meron! Halos kasabay pa ng Korea! May subtitles pa in different languages! From kilig romance hanggang action-packed thriller - kompleto! Bet mo ba yung may second lead syndrome? Meron! Yung nakakaiyak? Andito! Mas bet mo comedy? Dami rin! 😭😂💘');
+                    }
+                    return reply('Viu is basically K-drama paradise! 💕 We got ALL the latest eps, sometimes just hours after Korea! With subs in multiple languages! Whether you want butterfly-in-stomach romance 🦋, action-packed thrillers 🔪, or ugly-cry melodramas 😭 - we serve it all! Second lead syndrome? We invented it! 😂');
+                }
+                if(q.includes('original') || q.includes('exclusive') || q.includes('viu original')) {
+                    if(isTagalog) {
+                        return reply('Viu Originals = shows na EXCLUSIVE lang satin! 🌟 Ibig sabihin, hindi mo makikita sa ibang platform! Top Asian celebrities and fresh storytelling! Mga bagong concepts na swak sa taste mo! Proud kami dito, Viu Fam! 💪✨');
+                    }
+                    return reply('Viu Originals are our babies! 🌟 Shows you CAN\'T watch anywhere else - exclusive to Viu only! We work with top Asian talent to create fresh, innovative content! It\'s like indie films but for TV series! Super unique and binge-worthy! 🎬💎');
+                }
+                
+                // Countries - bilingual
+                if(q.includes('country') || q.includes('countries') || q.includes('available') || q.includes('region') || q.includes('where') || q.includes('saan') || q.includes('bansa')) {
+                    if(isTagalog) {
+                        return reply('Meron kami sa maraming bansa, Viu Fam! 🌏\n\n🇵🇭 Philippines - Kabayan!\n🇭🇰 Hong Kong\n🇸🇬 Singapore\n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nKung nandito ka, pwede ka manood! Swerte mo! 🎉');
+                    }
+                    return reply('We\'re EVERYWHERE in Asia (and beyond)! 🌏\n\n🇵🇭 Philippines - Mabuhay!\n🇭🇰 Hong Kong\n🇸🇬 Singapore  \n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nIf you\'re in any of these places, you\'re in luck! 🍀✨');
+                }
+                
+                // Pricing - fun and bilingual
+                if(q.includes('price') || q.includes('pricing') || q.includes('subscription') || q.includes('plan') || q.includes('cost') || q.includes('free') || q.includes('how much') || q.includes('magkano') || q.includes('presyo')) {
+                    if(isTagalog) {
+                        return reply('May FREE and Premium kami! 💎\n\n✅ FREE - May ads pero okay na rin!\n✅ PREMIUM - Walang ads, HD quality, pwede download, early access!\n\nPresyo per month:\n🇵🇭 Philippines: PHP 149 - mas mura pa sa milk tea! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90  \n🇹🇭 Thailand: THB 99\n\nSulit na sulit! Check viu.com for exact price sayo! 💰');
+                    }
+                    return reply('We got options for every budget! 💰\n\n✅ FREE - With ads (still awesome!)\n✅ PREMIUM - No ads, HD, downloads, early access!\n\nPricing per month:\n🇵🇭 Philippines: PHP 149 - cheaper than coffee! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90\n🇹🇭 Thailand: THB 99\n\nTotally worth it! Check viu.com for your region! 🎯');
+                }
+                if(q.includes('premium') || q.includes('benefit') || q.includes('advantage') || q.includes('perks')) {
+                    if(isTagalog) {
+                        return reply('Premium perks sobrang dami! 🎁\n\n✨ Walang ads - uninterrupted feels!\n📱 Download - panuorin offline, perfect sa byahe!\n🎥 HD quality 1080p - crystal clear!\n⚡ Early access - pinakauna ka manood ng new ep!\n👥 Multiple devices - share with fam!\n🌏 All your gadgets - phone, tablet, TV!\n🔄 Auto-sync - tuloy mo lang kahit saan!\n\nWorth it ang upgrade, promise! 🔥');
+                    }
+                    return reply('Premium perks are INSANE! 🚀\n\n✨ Zero ads - pure viewing bliss!\n📱 Download shows - watch on the plane!\n🎥 HD 1080p - crispy clear quality!\n⚡ Early access - be the first to watch!\n👥 Multiple devices - share with squad!\n🌏 Cross-device - phone, tablet, TV!\n🔄 Auto-sync - pick up where you left!\n\nSeriously worth the upgrade! 💎');
+                }
+                
+                // Support & contact
+                if(q.includes('contact') || q.includes('support') || q.includes('help') || q.includes('customer')) {
+                    return reply('Need help? 📧\n\n📧 Email: support@viu.com\n🌐 Visit: VIU Help Center at viu.com\n💬 Live Chat: Available in app\n📞 Phone support varies by country\n\nFor this survey, you can share feedback in the final comment section!');
+                }
+                
+                // Features
+                if(q.includes('download') || q.includes('offline')) {
+                    return reply('Yes! Viu Premium members can download shows and movies for offline viewing - perfect for travel or saving data! 📱✈️\n\nHow to download:\n1. Find your show\n2. Tap download icon\n3. Watch anytime, anywhere!\n\nFeature availability varies by content and region.');
+                }
+                if(q.includes('subtitle') || q.includes('language')) {
+                    return reply('Viu provides subtitles in multiple languages! 🌏\n\nAvailable languages:\n• English\n• 中文 Chinese\n• Bahasa Indonesia\n• ภาษาไทย Thai\n• Tagalog\n• Arabic (select regions)\n\nLanguage availability depends on your region and content!');
+                }
+                if(q.includes('device') || q.includes('platform')) {
+                    return reply('Watch Viu on ALL your devices! 📱💻📺\n\n✅ Mobile: iOS & Android\n✅ Web: Any browser at viu.com\n✅ Smart TV: Samsung, LG, Android TV\n✅ Streaming: Apple TV, Chromecast, Fire TV\n✅ Game Console: Select models\n\nSync your progress across all devices automatically!');
+                }
+                if(q.includes('quality') || q.includes('hd') || q.includes('resolution')) {
+                    return reply('Viu Premium offers HD streaming up to 1080p! 🎥\n\n📺 Quality options:\n• Auto (adjusts to your connection)\n• 1080p HD (Premium)\n• 720p\n• 480p\n• 360p\n\nVideo quality depends on your internet speed, device, and subscription. We automatically adjust for the best experience!');
+                }
+                
+                // App issues
+                if(q.includes('buffering') || q.includes('slow') || q.includes('loading') || q.includes('lag')) {
+                    return reply('Let\'s fix that buffering issue! 🔧\n\n1. Check your internet (need 5Mbps+ for HD)\n2. Close and restart the app\n3. Clear app cache\n4. Update to latest version\n5. Try lower quality setting\n\nStill having trouble? Contact support@viu.com');
+                }
+                if(q.includes('not working') || q.includes('error') || q.includes('bug') || q.includes('crash') || q.includes('broken')) {
+                    return reply('Sorry to hear that! Let\'s troubleshoot: 🛠️\n\n1. Update the Viu app (very important!)\n2. Restart your device completely\n3. Check internet connection\n4. Clear cache & data\n5. Reinstall app if needed\n\nIf issue persists, email support@viu.com with:\n• Device model\n• App version\n• Screenshot of error');
+                }
+                
+                // Recommendations
+                if(q.includes('recommend') || q.includes('suggest') || q.includes('popular') || q.includes('trending') || q.includes('best')) {
+                    return reply('Viu\'s recommendation engine suggests shows based on your viewing history! 🎬\n\n🔥 Currently Trending:\n• True Beauty (K-Drama)\n• Vincenzo (Action/Comedy)\n• Hometown Cha-Cha-Cha (Romance)\n• My Name (Thriller)\n• Alchemy of Souls (Fantasy)\n\nThe more you watch, the better our suggestions! You\'ll also rate our recommendations in this survey.');
+                }
+                
+                // Support
+                if(q.includes('support') || q.includes('help') || q.includes('contact') || q.includes('customer') || q.includes('tulong')) {
+                    if(isTagalog) {
+                        return reply('Nandito kami para sayo! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com\n💬 Live Chat sa app\n📞 Phone support depende sa bansa\n\nPara sa survey, pwede ka mag-comment sa dulo! May tanong? Chat lang! 😊');
+                    }
+                    return reply('We got your back! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com  \n💬 Live Chat in app\n📞 Phone support (varies by country)\n\nFor this survey, drop comments at the end! Need anything? Just holler! 😊');
+                }
+                
+                // Thanks
+                if(q.includes('thank') || q.includes('salamat')) {
+                    if(isTagalog) {
+                        return reply('Walang anuman, Viu Fam! 💛 Salamat din sa suporta mo! Keep watching and enjoying! Balik ka ulit ha! 👋✨');
+                    }
+                    return reply('You\'re so welcome, Viu Fam! 💛 Thanks for being awesome! Keep streaming and stay entertained! Come back anytime! 👋✨');
+                }
+                
+                // Fun random responses
+                if(q.includes('love') && (q.includes('you') || q.includes('u'))) {
+                    return reply('Awww, love you too, Viu Fam! 💕 But not as much as you\'ll love our K-dramas! 😉✨');
+                }
+                if(q.includes('bye') || q.includes('goodbye') || q.includes('paalam')) {
+                    if(isTagalog) {
+                        return reply('Bye, Viu Fam! 👋 Ingat ka! Balik ka ulit for more K-drama feels! See you! 💛');
+                    }
+                    return reply('See you later, Viu Fam! 👋 Don\'t be a stranger! Come back for more K-drama tea! 💛✨');
+                }
+                if(q.includes('joke') || q.includes('funny') || q.includes('nakakatawa')) {
+                    return reply('Why did the K-drama fan break up with their partner? Because they fell for the second male lead! 😂💔 Classic second lead syndrome! Want more? Watch our variety shows! 🎭');
+                }
+                if(q.includes('food') || q.includes('eat') || q.includes('hungry') || q.includes('kain') || q.includes('gutom')) {
+                    if(isTagalog) {
+                        return reply('Gutom ka? 🍜 Panoorin mo muna K-drama habang kumakain! Perfect combo: ramyeon + Korean drama = instant happiness! Kakagutom din yung food sa shows namin! 😋🍿');
+                    }
+                    return reply('Hungry? 🍜 Perfect time for K-drama + snacks combo! Seriously though, the food in our shows will make you even hungrier! Ramyeon anyone? 😋🍿');
+                }
+                if(q.includes('sad') || q.includes('crying') || q.includes('malungkot')) {
+                    if(isTagalog) {
+                        return reply('Aww bakit malungkot ka? 🥺 Panoorin mo comedy shows namin or kilig K-dramas! Guaranteed good vibes! Kailangan mo ng virtual hug? *sends hug* 🤗💛 You got this, Viu Fam!');
+                    }
+                    return reply('Oh no, why the sad face? 🥺 Watch our rom-coms for instant serotonin boost! Or cry it out with a melodrama - therapeutic yan! *Virtual hug incoming* 🤗💛 You got this, Viu Fam!');
+                }
+                if(q.includes('sleep') || q.includes('tulog') || q.includes('tired')) {
+                    if(isTagalog) {
+                        return reply('Pagod ka? 😴 Dapat matulog na... PERO wait, one more episode lang! Yan palagi sinasabi natin! 😂 Kidding! Rest ka muna, Viu Fam! Shows namin dito pa rin bukas! 💤✨');
+                    }
+                    return reply('Tired? 😴 You should sleep... BUT WAIT, one more episode! That\'s what we all say! 😂 Kidding! Get some rest, Viu Fam! Our shows will still be here tomorrow! Sweet dreams! 💤✨');
+                }
+                if(q.includes('cute') || q.includes('gwapo') || q.includes('maganda')) {
+                    return reply('Uy, thanks sa compliment! 😊 But wait till you see our K-drama actors! Sobrang gwapo and maganda! Pang-cover ng magazine! 😍✨ Check out our shows!');
+                }
+                if(q.includes('weather') || q.includes('panahon')) {
+                    return reply('Perfect weather para mag-binge watch! ☁️ Whether sunny or rainy, Viu is always a good idea! Stay cozy indoors with our shows! 🌈📺');
+                }
+                
+                // Default - fun and helpful
+                if(isTagalog) {
+                    return reply('Hmm, hindi ko sure kung gets kita pero game ako sumagot! 😄 Tanong mo lang ako about:\n\n📋 Survey - paano magsimula, ano tanong\n📺 Viu shows - K-drama, anime, movies  \n🌏 Available countries\n💎 Premium benefits\n📱 Tech support\n\nO kahit random lang! Chat tayo, Viu Fam! Kamusta? 💛');
+                }
+                return reply('Interesting question! 😄 I\'m here to chat about anything! Try asking me about:\n\n📋 The survey - how to start, what to expect\n📺 Viu content - K-dramas, anime, movies\n🌏 Where Viu is available  \n💎 Premium perks\n📱 Technical stuff\n\nOr just chat randomly - I\'m fun like that! What\'s on your mind, Viu Fam? ✨');
+            }
+
+            // Message rendering helpers
+            function addUserMessage(text, timestamp = Date.now(), skipHistory = false) {
+                const ur = document.createElement('div');
+                ur.className = 'chat-row user';
+                const ub = document.createElement('div');
+                ub.className = 'chat-bubble-user';
+                ub.textContent = text;
+                ur.appendChild(ub);
+                body.appendChild(ur);
+                
+                if(!skipHistory) {
+                    chatState.conversationHistory.push({ type: 'user', text, timestamp });
+                    saveChatHistory();
+                }
+            }
+            
+            function addBotMessage(text, timestamp = Date.now(), buttons = [], skipHistory = false) {
+                const br = document.createElement('div');
+                br.className = 'chat-row bot';
+                
+                const ba = document.createElement('img');
+                ba.className = 'chat-avatar';
+                ba.src = '/chatbot.svg';
+                ba.alt = 'Bot';
+                
+                const bb = document.createElement('div');
+                bb.className = 'chat-bubble-bot';
+                
+                // Add message text
+                const textDiv = document.createElement('div');
+                textDiv.className = 'bot-message-text';
+                textDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+                bb.appendChild(textDiv);
+                
+                // Quick action buttons
+                if(buttons && buttons.length > 0) {
+                    const btnContainer = document.createElement('div');
+                    btnContainer.className = 'quick-action-buttons';
+                    buttons.forEach(btnText => {
+                        const btn = document.createElement('button');
+                        btn.className = 'quick-action-btn';
+                        btn.textContent = btnText;
+                        btn.addEventListener('click', () => {
+                            input.value = btnText;
+                            sendBtn.click();
+                        });
+                        btnContainer.appendChild(btn);
+                    });
+                    bb.appendChild(btnContainer);
+                }
+                
+                br.appendChild(ba);
+                br.appendChild(bb);
+                body.appendChild(br);
+                
+                lucide.createIcons();
+                
+                if(!skipHistory) {
+                    chatState.conversationHistory.push({ type: 'bot', text, timestamp, buttons });
+                    saveChatHistory();
+                }
+            }
+            
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            function saveChatHistory() {
+                try {
+                    localStorage.setItem('viu_chat_history', JSON.stringify(chatState.conversationHistory.slice(-50)));
+                } catch(e) {}
+            }
+            
+            async function send(text) {
+                // Reset inactivity timer
+                resetInactivityTimer();
+                
+                // Add user message
+                addUserMessage(text);
+                
+                // Show typing indicator
+                const br = document.createElement('div');
+                br.className = 'chat-row bot typing-indicator';
+                const ba = document.createElement('img');
+                ba.className = 'chat-avatar';
+                ba.src = '/chatbot.svg';
+                ba.alt = 'Bot';
+                const bb = document.createElement('div');
+                bb.className = 'chat-bubble-bot';
+                const ell = document.createElement('div');
+                ell.className = 'typing';
+                ell.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+                bb.appendChild(ell);
+                br.appendChild(ba);
+                br.appendChild(bb);
+                body.appendChild(br);
+                body.scrollTop = body.scrollHeight;
+                
+                // Simulate thinking delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Use local chatbot (always)
+                const response = localBot(text);
+                
+                // Remove typing indicator
+                if(body.contains(br)) body.removeChild(br);
+                
+                // Add bot response - localBot now returns just text strings
+                addBotMessage(response, Date.now(), []);
+                
+                body.scrollTop = body.scrollHeight;
+            }
+            sendBtn.addEventListener('click', () => { const t = (input.value||'').trim(); if(!t) return; input.value=''; send(t); });
+            input.addEventListener('keypress', (e) => { if(e.key==='Enter'){ sendBtn.click(); }});
+            document.querySelectorAll('.quick-reply').forEach(btn => btn.addEventListener('click', () => { input.value = btn.dataset.text; sendBtn.click(); }));
+            
+            // Clear old localStorage chat history on page load to show fresh welcome
+            if(localStorage.getItem('viu_chat_history')) {
+                localStorage.removeItem('viu_chat_history');
+                chatState.conversationHistory = [];
+            }
+        })();
+
+        // ==================== 4. NAVIGATION ====================
+        function goToPage(pageId, progress) {
+            // Hide all pages EXCEPT splash screen, chatbot overlay, and floating button
+            document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
+            document.getElementById(pageId).classList.remove('hidden-page');
+            if(progress !== undefined) updateProgress(progress);
+            lucide.createIcons();
+        }
+
+        function goBack(pageId) {
+            document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
+            document.getElementById(pageId).classList.remove('hidden-page');
+            if(pageId === 'user-details-page') updateProgress(0);
+            if(pageId === 'privacy-page') updateProgress(8);
+            if(pageId === 'genre-page') updateProgress(17);
+            if(pageId === 'welcome-page') updateProgress(0);
+            if(pageId === 'final-page') updateProgress(95);
+        }
+
+        function updateProgress(percent) {
+            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = percent + '%');
+            document.querySelectorAll('.progress-text').forEach(el => el.innerText = percent + '%');
+        }
+
+        // ==================== 5. FLOW LOGIC ====================
+        function handlePrivacyContinue() {
+            if(!document.getElementById('privacy-check').checked) return alert('Please accept privacy policy.');
+            goToPage('genre-page', 17);
+        }
+
+        function toggleGenre(el) {
+            el.classList.toggle('selected');
+            const text = el.innerText;
+            if(selectedGenres.includes(text)) {
+                selectedGenres = selectedGenres.filter(g => g !== text);
+            } else {
+                selectedGenres.push(text);
+            }
+        }
+
+        function startQuestions() {
+            currentQIndex = 0;
+            loadQuestion();
+            goToPage('question-page', 25);
+        }
+
+        function loadQuestion() {
+            const data = questions[currentQIndex];
+            const num = currentQIndex + 1;
+            const qTitle = document.getElementById('q-title');
+            
+            document.getElementById('q-number').innerText = num < 10 ? `0${num}` : num;
+            qTitle.innerText = data.title;
+            document.getElementById('q-subtitle').innerText = data.subtitle;
+
+            if (data.title.length > 30) {
+                qTitle.className = "text-3xl md:text-4xl font-bold text-black mb-2";
+            } else {
+                qTitle.className = "text-4xl md:text-5xl font-bold text-black mb-2";
+            }
+
+            const progress = Math.round(25 + (currentQIndex * 7)); 
+            document.getElementById('q-progress-fill').style.width = progress + '%';
+            document.getElementById('q-progress-text').innerText = progress + '%';
+            renderStars(data.rating);
+        }
+
+        function renderStars(currentRating) {
+            const container = document.getElementById('star-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const starDiv = document.createElement('div');
+                const isFilled = i <= currentRating;
+                const fillColor = isFilled ? '#F6BE00' : '#E5E7EB'; 
+                const iconClass = isFilled ? 'star-icon active' : 'star-icon';
+                starDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${fillColor}" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${iconClass}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+                starDiv.onclick = () => { questions[currentQIndex].rating = i; renderStars(i); };
+                starDiv.onmouseenter = () => previewStars(i);
+                container.appendChild(starDiv);
+            }
+            container.onmouseleave = () => renderStars(questions[currentQIndex].rating);
+        }
+
+        function previewStars(hoverIndex) {
+            const svgs = document.querySelectorAll('#star-container svg');
+            svgs.forEach((svg, idx) => {
+                if (idx < hoverIndex) { svg.style.fill = '#F6BE00'; svg.style.color = '#F6BE00'; } 
+                else { svg.style.fill = '#E5E7EB'; svg.style.color = '#E5E7EB'; }
+            });
+        }
+
+        function nextQuestion() {
+            if(currentQIndex < questions.length - 1) {
+                currentQIndex++;
+                loadQuestion();
+                const mainContent = document.querySelector('#question-page .fade-in');
+                if(mainContent) {
+                    mainContent.classList.remove('fade-in');
+                    void mainContent.offsetWidth; 
+                    mainContent.classList.add('fade-in');
+                }
+            } else {
+                goToPage('final-page', 95);
+            }
+        }
+
+        function handleQuestionBack() {
+            if(currentQIndex > 0) { currentQIndex--; loadQuestion(); } else { goBack('genre-page'); }
+        }
+
+        function handleFinalBack() {
+            currentQIndex = questions.length - 1; 
+            loadQuestion(); 
+            goToPage('question-page', 95);
+        }
+
+        function goToSummary() {
+            const listContainer = document.getElementById('summary-list');
+            listContainer.innerHTML = ''; 
+            questions.forEach((q, index) => {
+                const num = index + 1;
+                const numStr = num < 10 ? `0${num}` : num;
+                const rating = q.rating || 0; 
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors';
+                row.innerHTML = `<div class="text-gray-500 font-medium text-lg"><span class="font-bold text-gray-400 mr-2">${numStr}.</span> ${q.title}</div><div class="flex items-center gap-1 text-viu-yellow font-bold text-xl"><span>${rating}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#F6BE00" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>`;
+                listContainer.appendChild(row);
+            });
+            goToPage('summary-page', 100);
+        }
+
+        async function submitSurvey() {
+            const country = document.getElementById('user-country').value || null;
+            const email = document.getElementById('user-email').value || null;
+            const name = document.getElementById('user-name').value || null;
+            const suggestion = document.getElementById('final-comment').value || null;
+            const serviceVoted = selectedGenres.length > 0 ? selectedGenres[0] : 'General';
+            const payload = {
+                country,
+                email,
+                name,
+                service: serviceVoted,
+                ratings: questions.map(q => ({ question_id: q.id || null, title: q.title, rating: q.rating })),
+                suggestion,
+                submitted_at: new Date().toISOString()
+            };
+            try {
+                const res = await fetch('{{ url('/api/public/responses') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(!res.ok){
+                    const msg = await res.text();
+                    showToast('error', msg || 'Failed to submit');
+                    return;
+                }
+                // Also persist locally to support admin listing fallback
+                try {
+                    const key = 'viu_submissions';
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    const withId = Object.assign({ id: Date.now().toString() }, payload);
+                    arr.push(withId);
+                    localStorage.setItem(key, JSON.stringify(arr));
+                } catch(_) { /* ignore local storage errors */ }
+            } catch(e) {
+                showToast('error','Network error while submitting');
+                return;
+            }
+            goToPage('thank-you-page');
+        }
+
+        function resetSurvey() {
+            loadQuestionsFromStorage();
+            currentQIndex = 0;
+            selectedGenres = [];
+            document.querySelectorAll('input').forEach(input => { if(input.type === 'checkbox') input.checked = false; else input.value = ''; });
+            document.querySelectorAll('textarea').forEach(t => t.value = '');
+            document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('selected'));
+            goToPage('welcome-page', 0);
+        }
+
+        // ==================== COUNTRY DROPDOWN ====================
+        const viuCountries = [
+            { name:'Hong Kong', code:'HKG', iso2:'hk' },
+            { name:'Singapore', code:'SGP', iso2:'sg' },
+            { name:'Malaysia', code:'MYS', iso2:'my' },
+            { name:'Indonesia', code:'IDN', iso2:'id' },
+            { name:'Thailand', code:'THA', iso2:'th' },
+            { name:'Philippines', code:'PHL', iso2:'ph' },
+            { name:'United Arab Emirates', code:'ARE', iso2:'ae' },
+            { name:'Saudi Arabia', code:'SAU', iso2:'sa' },
+            { name:'Qatar', code:'QAT', iso2:'qa' },
+            { name:'Kuwait', code:'KWT', iso2:'kw' },
+            { name:'Oman', code:'OMN', iso2:'om' },
+            { name:'Bahrain', code:'BHR', iso2:'bh' },
+            { name:'Jordan', code:'JOR', iso2:'jo' },
+            { name:'Egypt', code:'EGY', iso2:'eg' },
+            { name:'South Africa', code:'ZAF', iso2:'za' }
+        ];
+        document.addEventListener('DOMContentLoaded', () => {
+            buildCountryDropdown();
+        });
+        function buildCountryDropdown(){
+            const listEl = document.getElementById('country-list');
+            if(!listEl) return;
+            listEl.innerHTML = '';
+            viuCountries.forEach(c => {
+                const li = document.createElement('li');
+                li.className = 'py-3 px-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-gray-700';
+                li.innerHTML = `<span class="fi fi-${c.iso2} flag-ico"></span><span class="flex-1">${c.name} - ${c.code}</span>`;
+                li.addEventListener('click', () => selectCountry(c));
+                listEl.appendChild(li);
+            });
+            const trigger = document.getElementById('country-select-trigger');
+            trigger.addEventListener('click', toggleCountryDropdown);
+            document.addEventListener('click', (e) => {
+                const wrap = document.getElementById('country-select-wrapper');
+                if(!wrap.contains(e.target)) {
+                    document.getElementById('country-dropdown').classList.add('hidden');
+                }
+            });
+        }
+        function toggleCountryDropdown(){
+            document.getElementById('country-dropdown').classList.toggle('hidden');
+        }
+        function selectCountry(c){
+            document.getElementById('user-country').value = c.name;
+            const el = document.getElementById('country-selected-text');
+            el.innerHTML = `<span class="fi fi-${c.iso2} flag-ico align-middle"></span> <span class="align-middle">${c.name} (${c.code})</span>`;
+            el.classList.remove('text-gray-400');
+            document.getElementById('country-dropdown').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
