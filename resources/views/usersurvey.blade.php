@@ -374,10 +374,10 @@
         <script>
         // Fallback if JS errors stop initial transition
         setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            const welcome = document.getElementById('welcome-page');
+            const splash = document.getElementById('splash-screen';
+            const welcome = document.getElementById('welcome-page';
             if (splash && !splash.classList.contains('fade-out')) {
-                splash.classList.add('fade-out');
+                splash.classList.add('fade-out';
                 if (welcome && welcome.style.opacity === '0') welcome.style.opacity = '1';
             }
         }, 2500);
@@ -404,19 +404,19 @@
             lucide.createIcons();
             loadQuestionsFromStorage(); // Load admin edits
             // Immediately reveal welcome page and hide splash
-            const splash = document.getElementById('splash-screen');
-            const welcome = document.getElementById('welcome-page');
+            const splash = document.getElementById('splash-screen';
+            const welcome = document.getElementById('welcome-page';
             if (welcome) {
-                welcome.classList.remove('hidden-page');
+                welcome.classList.remove('hidden-page';
                 welcome.style.opacity = '1';
             }
             if (splash) {
-                splash.classList.add('fade-out');
+                splash.classList.add('fade-out';
             }
         });
 
         async function loadQuestionsFromStorage() {
-            const stored = localStorage.getItem('viu_survey_questions');
+            const stored = localStorage.getItem('viu_survey_questions';
             if (stored) {
                 questions = JSON.parse(stored);
                 questions.forEach(q => q.rating = 0);
@@ -456,7 +456,7 @@
         }
         
         function toggleChat() {
-            const overlay = document.getElementById('chat-overlay');
+            const overlay = document.getElementById('chat-overlay';
             chatState.opened = !chatState.opened;
             overlay.classList.toggle('visible', chatState.opened);
             
@@ -468,7 +468,7 @@
         
         // Enhancement #15: Restore chat history
         function restoreChatHistory() {
-            const body = document.querySelector('.chat-body');
+            const body = document.querySelector('.chat-body';
             body.innerHTML = ''; // Clear existing
             chatState.conversationHistory.forEach(msg => {
                 if(msg.type === 'user') {
@@ -498,9 +498,9 @@
 
         // Optional: wire simple client send to backend
         (function initChat() {
-            const body = document.querySelector('.chat-body');
-            const input = document.querySelector('.chat-input');
-            const sendBtn = document.querySelector('.chat-input-area button');
+            const body = document.querySelector('.chat-body';
+            const input = document.querySelector('.chat-input';
+            const sendBtn = document.querySelector('.chat-input-area button';
             
             // Enhancement #3: Multi-language support
             const translations = {
@@ -526,9 +526,9 @@
             
             // Enhancement #5: Fuzzy matching
             function fuzzyMatch(text, patterns) {
-                const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '';
                 return patterns.some(p => {
-                    const pattern = p.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                    const pattern = p.toLowerCase().replace(/[^a-z0-9\s]/g, '';
                     const distance = levenshteinDistance(normalized, pattern);
                     return distance <= 2 || normalized.includes(pattern) || pattern.includes(normalized);
                 });
@@ -565,198 +565,197 @@
             }
             
             function localBot(text){
-                const q = text.toLowerCase();
-                const reply = (s) => s;
+                const q = text.toLowerCase().trim();
                 
                 // Detect Tagalog/Filipino
-                const isTagalog = /\b(kamusta|ano|kumusta|salamat|pano|paano|saan|kelan|sino|bakit|mga|lang|naman|talaga|sobra|grabe|diba|kasi|yung|yun|nung|pag|kung|ganun|ganyan|po|opo|oo)\b/i.test(text);
+                const isTagalog = /\b(kamusta|ano|kumusta|salamat|pano|paano|saan|kelan|sino|bakit|mga|lang|naman|talaga|sobra|grabe|diba|kasi|yung|yun|nung|pag|kung|ganun|ganyan|po|opo|oo|ka|mo|ko)\b/i.test(text);
                 
-                // Greetings - English and Tagalog
-                if(/^(hi|hello|hey|good morning|good afternoon|good evening|kamusta|kumusta|musta|sup|yo)\b/i.test(q)) {
+                // Greetings
+                if(q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('kamusta') || q.includes('kumusta') || q.includes('musta') || q.includes('morning') || q.includes('afternoon') || q.includes('sup') || q.includes('yo')) {
                     if(isTagalog) {
-                        return reply('Kamusta, Viu Fam! � Ako ang iyong Virtual Assistant! Tanungin mo lang ako tungkol sa survey, Viu shows, o kahit ano! Paano kita matutulungan?');
+                        return 'Kamusta, Viu Fam! 👋 Ako ang iyong Virtual Assistant! Tanungin mo lang ako tungkol sa survey, Viu shows, o kahit ano! Paano kita matutulungan?';
                     }
-                    return reply('Hello, Viu Fam! 👋 Kamusta? I\'m your Virtual Assistant and I\'m here to help! Ask me anything - about the survey, Viu content, or just chat! What\'s up? 😊');
+                    return 'Hello, Viu Fam! 👋 Kamusta? I\'m your Virtual Assistant and I\'m here to help! Ask me anything - about the survey, Viu content, or just chat! What\'s up? 😊';
                 }
                 
                 // Survey questions - bilingual
                 if(q.includes('survey') && (q.includes('start') || q.includes('begin') || q.includes('take') || q.includes('simula') || q.includes('paano'))) {
                     if(isTagalog) {
-                        return reply('Para magsimula ng survey: 1) I-click ang "Start Survey" sa welcome screen, 2) Piliin ang bansa mo, 3) Accept privacy policy, 4) Piliin favorite genres mo, tapos i-rate mo ang 10 categories! Easy lang, Viu Fam! 💪');
+                        return 'Para magsimula ng survey: 1) I-click ang "Start Survey" sa welcome screen, 2) Piliin ang bansa mo, 3) Accept privacy policy, 4) Piliin favorite genres mo, tapos i-rate mo ang 10 categories! Easy lang, Viu Fam! 💪';
                     }
-                    return reply('Easy peasy! To start the survey: 1) Click "Start Survey" on the welcome screen, 2) Select your country, 3) Accept the privacy policy, 4) Choose your favorite genres, then rate your experience across 10 categories! Takes just 5 mins! ⏱️');
+                    return 'Easy peasy! To start the survey: 1) Click "Start Survey" on the welcome screen, 2) Select your country, 3) Accept the privacy policy, 4) Choose your favorite genres, then rate your experience across 10 categories! Takes just 5 mins! ⏱️';
                 }
                 if(q.includes('question') || q.includes('tanong') || q.includes('ano ang')) {
                     if(isTagalog) {
-                        return reply('May 10 questions sa survey, Viu Fam! ⭐\n\n1. Video Quality - HD ba?\n2. App Performance - Mabilis ba?\n3. Content Library - Marami bang shows?\n4. Subtitle Quality - Okay ba translation?\n5. User Interface - Ganda ng design?\n6. Search - Madali hanapin shows?\n7. Recommendations - Swak suggestions?\n8. Offline Download - Pwede download?\n9. Customer Support - Helpful ba?\n10. Value for Money - Sulit ba?\n\nRate mo lang 1-5 stars each! Tapos pwede mag-comment kung gusto mo! 💯');
+                        return 'May 10 questions sa survey, Viu Fam! ⭐\n\n1. Video Quality - HD ba?\n2. App Performance - Mabilis ba?\n3. Content Library - Marami bang shows?\n4. Subtitle Quality - Okay ba translation?\n5. User Interface - Ganda ng design?\n6. Search - Madali hanapin shows?\n7. Recommendations - Swak suggestions?\n8. Offline Download - Pwede download?\n9. Customer Support - Helpful ba?\n10. Value for Money - Sulit ba?\n\nRate mo lang 1-5 stars each! Tapos pwede mag-comment kung gusto mo! 💯';
                     }
-                    return reply('Great question! The survey covers 10 awesome topics! 🌟\n\n1. Video Quality - Is it crispy HD?\n2. App Performance - Smooth or laggy?\n3. Content Library - Enough variety?\n4. Subtitle Quality - Readable?\n5. User Interface - Pretty design?\n6. Search Functionality - Easy to find?\n7. Recommendations - Good suggestions?\n8. Offline Download - Works well?\n9. Customer Support - Helpful?\n10. Value for Money - Worth it?\n\nJust rate 1-5 stars for each! Plus optional comments at the end! 😎');
+                    return 'Great question! The survey covers 10 awesome topics! 🌟\n\n1. Video Quality - Is it crispy HD?\n2. App Performance - Smooth or laggy?\n3. Content Library - Enough variety?\n4. Subtitle Quality - Readable?\n5. User Interface - Pretty design?\n6. Search Functionality - Easy to find?\n7. Recommendations - Good suggestions?\n8. Offline Download - Works well?\n9. Customer Support - Helpful?\n10. Value for Money - Worth it?\n\nJust rate 1-5 stars for each! Plus optional comments at the end! 😎';
                 }
                 if(q.includes('why') || q.includes('bakit') || q.includes('purpose')) {
                     if(isTagalog) {
-                        return reply('Para mas gawing swak para sa\'yo ang Viu, Viu Fam! 🎯 Gusto namin malaman kung ano gusto niyo - mas maraming K-dramas? Mas mabilis app? Better quality? Your voice matters talaga! Kayo ang boss dito! 👑');
+                        return 'Para mas gawing swak para sa\'yo ang Viu, Viu Fam! 🎯 Gusto namin malaman kung ano gusto niyo - mas maraming K-dramas? Mas mabilis app? Better quality? Your voice matters talaga! Kayo ang boss dito! 👑';
                     }
-                    return reply('Your feedback makes Viu better for everyone! 🚀 We wanna know what you love, what needs fixing, and what new stuff you want! More K-dramas? Better app speed? Different content? You\'re literally shaping the future of Viu! How cool is that?! 🔥');
+                    return 'Your feedback makes Viu better for everyone! 🚀 We wanna know what you love, what needs fixing, and what new stuff you want! More K-dramas? Better app speed? Different content? You\'re literally shaping the future of Viu! How cool is that?! 🔥';
                 }
                 if(q.includes('long') || q.includes('time') || q.includes('minutes') || q.includes('gaano katagal') || q.includes('ilang')) {
                     if(isTagalog) {
-                        return reply('3-5 minutes lang, promise! ⚡ Kasing-bilis lang ng isang commercial break! Sagot mo lang 10 questions, tapos tapos na! Netflix and chill pa rin after! 😁');
+                        return '3-5 minutes lang, promise! ⚡ Kasing-bilis lang ng isang commercial break! Sagot mo lang 10 questions, tapos tapos na! Netflix and chill pa rin after! 😁';
                     }
-                    return reply('Super quick - just 3-5 minutes! ⚡ Literally the time it takes to make instant noodles! Answer 10 quick questions and you\'re done! Then back to binge-watching! 📺✨');
+                    return 'Super quick - just 3-5 minutes! ⚡ Literally the time it takes to make instant noodles! Answer 10 quick questions and you\'re done! Then back to binge-watching! 📺✨';
                 }
                 if(q.includes('anonymous') || q.includes('privacy') || q.includes('data') || q.includes('private')) {
                     if(isTagalog) {
-                        return reply('Oo naman, secret lang yan! 🤫 100% anonymous unless gusto mo i-share email mo. Hindi namin ibibigay info mo kahit kanino!\n✅ Ratings and comments lang\n✅ Name/email optional\n✅ Confidential\n✅ Para lang sa improvement ng Viu\n\nTrust us, Viu Fam! 💯');
+                        return 'Oo naman, secret lang yan! 🤫 100% anonymous unless gusto mo i-share email mo. Hindi namin ibibigay info mo kahit kanino!\n✅ Ratings and comments lang\n✅ Name/email optional\n✅ Confidential\n✅ Para lang sa improvement ng Viu\n\nTrust us, Viu Fam! 💯';
                     }
-                    return reply('Totally anonymous, don\'t worry! 🔒 Your secrets are safe with us! We won\'t share your info with anyone - not even our pet goldfish! 🐠\n✅ Only stores ratings & comments\n✅ Name/email optional\n✅ Super confidential\n✅ Used ONLY to make Viu better\n\nPinky promise! 🤙');
+                    return 'Totally anonymous, don\'t worry! 🔒 Your secrets are safe with us! We won\'t share your info with anyone - not even our pet goldfish! 🐠\n✅ Only stores ratings & comments\n✅ Name/email optional\n✅ Super confidential\n✅ Used ONLY to make Viu better\n\nPinky promise! 🤙';
                 }
                 
                 // About Viu - fun and bilingual
                 if((q.includes('what') && q.includes('viu')) || q.includes('about') || q.includes('ano ang viu') || q.includes('who') && q.includes('you')) {
                     if(isTagalog) {
-                        return reply('Ako si Viu! 🎉 Pinakamagandang streaming service para sa Asian content! May K-dramas, Thai shows, anime, movies - lahat nandito! Think Netflix pero puro Asian hits! Galing Korea, Japan, Thailand, China - fresh episodes pa! Saan ka pa?! 🔥');
+                        return 'Ako si Viu! 🎉 Pinakamagandang streaming service para sa Asian content! May K-dramas, Thai shows, anime, movies - lahat nandito! Think Netflix pero puro Asian hits! Galing Korea, Japan, Thailand, China - fresh episodes pa! Saan ka pa?! 🔥';
                     }
-                    return reply('Viu is like your bestie who knows ALL the best Asian shows! 🎬✨ We\'re the ultimate streaming service for K-dramas, Thai lakorn, anime, Asian movies, and exclusive originals! Think of us as Netflix\'s cool Asian cousin! 😎 Fresh from Korea, Japan, Thailand, and more - we got the tea! ☕');
+                    return 'Viu is like your bestie who knows ALL the best Asian shows! 🎬✨ We\'re the ultimate streaming service for K-dramas, Thai lakorn, anime, Asian movies, and exclusive originals! Think of us as Netflix\'s cool Asian cousin! 😎 Fresh from Korea, Japan, Thailand, and more - we got the tea! ☕';
                 }
                 if(q.includes('content') || q.includes('watch') || q.includes('show') || q.includes('series') || q.includes('movie') || q.includes('palabas') || q.includes('panuorin')) {
                     if(isTagalog) {
-                        return reply('Grabe, dami namin! 🤩\n\n📺 Latest K-dramas - kilig to the bones!\n🎬 Asian movies - award-winning pa!\n🎭 Variety shows - super funny!\n🌌 Anime - para sa mga otaku!\n🇹🇭 Thai dramas - LSS sa OST!\n⭐ Viu Originals - exclusive satin!\n🎪 Chinese dramas - epic!\n\nPopular ngayon: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, Alchemy of Souls! Binge-worthy lahat! 🍿');
+                        return 'Grabe, dami namin! 🤩\n\n📺 Latest K-dramas - kilig to the bones!\n🎬 Asian movies - award-winning pa!\n🎭 Variety shows - super funny!\n🌌 Anime - para sa mga otaku!\n🇹🇭 Thai dramas - LSS sa OST!\n⭐ Viu Originals - exclusive satin!\n🎪 Chinese dramas - epic!\n\nPopular ngayon: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, Alchemy of Souls! Binge-worthy lahat! 🍿';
                     }
-                    return reply('Oh man, where do I even start?! 🎉\n\n📺 K-dramas - ALL the feels!\n🎬 Asian cinema - Oscar-worthy stuff!\n🎭 Variety shows - laugh till you cry!\n🌌 Anime - for the culture!\n🇹🇭 Thai dramas - chef\'s kiss!\n⭐ Viu Originals - can\'t find anywhere else!\n🎪 C-dramas - epic storylines!\n\nTrending now: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, My Name! Pure fire! 🔥🍿');
+                    return 'Oh man, where do I even start?! 🎉\n\n📺 K-dramas - ALL the feels!\n🎬 Asian cinema - Oscar-worthy stuff!\n🎭 Variety shows - laugh till you cry!\n🌌 Anime - for the culture!\n🇹🇭 Thai dramas - chef\'s kiss!\n⭐ Viu Originals - can\'t find anywhere else!\n🎪 C-dramas - epic storylines!\n\nTrending now: True Beauty, Vincenzo, Hometown Cha-Cha-Cha, My Name! Pure fire! 🔥🍿';
                 }
                 if(q.includes('kdrama') || q.includes('korean') || q.includes('k-drama') || q.includes('korea')) {
                     if(isTagalog) {
-                        return reply('K-drama heaven tayo dito, Viu Fam! 💕 Lahat ng latest episodes, meron! Halos kasabay pa ng Korea! May subtitles pa in different languages! From kilig romance hanggang action-packed thriller - kompleto! Bet mo ba yung may second lead syndrome? Meron! Yung nakakaiyak? Andito! Mas bet mo comedy? Dami rin! 😭😂💘');
+                        return 'K-drama heaven tayo dito, Viu Fam! 💕 Lahat ng latest episodes, meron! Halos kasabay pa ng Korea! May subtitles pa in different languages! From kilig romance hanggang action-packed thriller - kompleto! Bet mo ba yung may second lead syndrome? Meron! Yung nakakaiyak? Andito! Mas bet mo comedy? Dami rin! 😭😂💘';
                     }
-                    return reply('Viu is basically K-drama paradise! 💕 We got ALL the latest eps, sometimes just hours after Korea! With subs in multiple languages! Whether you want butterfly-in-stomach romance 🦋, action-packed thrillers 🔪, or ugly-cry melodramas 😭 - we serve it all! Second lead syndrome? We invented it! 😂');
+                    return 'Viu is basically K-drama paradise! 💕 We got ALL the latest eps, sometimes just hours after Korea! With subs in multiple languages! Whether you want butterfly-in-stomach romance 🦋, action-packed thrillers 🔪, or ugly-cry melodramas 😭 - we serve it all! Second lead syndrome? We invented it! 😂';
                 }
                 if(q.includes('original') || q.includes('exclusive') || q.includes('viu original')) {
                     if(isTagalog) {
-                        return reply('Viu Originals = shows na EXCLUSIVE lang satin! 🌟 Ibig sabihin, hindi mo makikita sa ibang platform! Top Asian celebrities and fresh storytelling! Mga bagong concepts na swak sa taste mo! Proud kami dito, Viu Fam! 💪✨');
+                        return 'Viu Originals = shows na EXCLUSIVE lang satin! 🌟 Ibig sabihin, hindi mo makikita sa ibang platform! Top Asian celebrities and fresh storytelling! Mga bagong concepts na swak sa taste mo! Proud kami dito, Viu Fam! 💪✨';
                     }
-                    return reply('Viu Originals are our babies! 🌟 Shows you CAN\'T watch anywhere else - exclusive to Viu only! We work with top Asian talent to create fresh, innovative content! It\'s like indie films but for TV series! Super unique and binge-worthy! 🎬💎');
+                    return 'Viu Originals are our babies! 🌟 Shows you CAN\'T watch anywhere else - exclusive to Viu only! We work with top Asian talent to create fresh, innovative content! It\'s like indie films but for TV series! Super unique and binge-worthy! 🎬💎';
                 }
                 
                 // Countries - bilingual
                 if(q.includes('country') || q.includes('countries') || q.includes('available') || q.includes('region') || q.includes('where') || q.includes('saan') || q.includes('bansa')) {
                     if(isTagalog) {
-                        return reply('Meron kami sa maraming bansa, Viu Fam! 🌏\n\n🇵🇭 Philippines - Kabayan!\n🇭🇰 Hong Kong\n🇸🇬 Singapore\n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nKung nandito ka, pwede ka manood! Swerte mo! 🎉');
+                        return 'Meron kami sa maraming bansa, Viu Fam! 🌏\n\n🇵🇭 Philippines - Kabayan!\n🇭🇰 Hong Kong\n🇸🇬 Singapore\n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nKung nandito ka, pwede ka manood! Swerte mo! 🎉';
                     }
-                    return reply('We\'re EVERYWHERE in Asia (and beyond)! 🌏\n\n🇵🇭 Philippines - Mabuhay!\n🇭🇰 Hong Kong\n🇸🇬 Singapore  \n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nIf you\'re in any of these places, you\'re in luck! 🍀✨');
+                    return 'We\'re EVERYWHERE in Asia (and beyond)! 🌏\n\n🇵🇭 Philippines - Mabuhay!\n🇭🇰 Hong Kong\n🇸🇬 Singapore  \n🇲🇾 Malaysia\n🇮🇩 Indonesia\n🇹🇭 Thailand\n🌍 Middle East: UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain, Jordan, Egypt, South Africa\n\nIf you\'re in any of these places, you\'re in luck! 🍀✨';
                 }
                 
                 // Pricing - fun and bilingual
                 if(q.includes('price') || q.includes('pricing') || q.includes('subscription') || q.includes('plan') || q.includes('cost') || q.includes('free') || q.includes('how much') || q.includes('magkano') || q.includes('presyo')) {
                     if(isTagalog) {
-                        return reply('May FREE and Premium kami! 💎\n\n✅ FREE - May ads pero okay na rin!\n✅ PREMIUM - Walang ads, HD quality, pwede download, early access!\n\nPresyo per month:\n🇵🇭 Philippines: PHP 149 - mas mura pa sa milk tea! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90  \n🇹🇭 Thailand: THB 99\n\nSulit na sulit! Check viu.com for exact price sayo! 💰');
+                        return 'May FREE and Premium kami! 💎\n\n✅ FREE - May ads pero okay na rin!\n✅ PREMIUM - Walang ads, HD quality, pwede download, early access!\n\nPresyo per month:\n🇵🇭 Philippines: PHP 149 - mas mura pa sa milk tea! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90  \n🇹🇭 Thailand: THB 99\n\nSulit na sulit! Check viu.com for exact price sayo! 💰';
                     }
-                    return reply('We got options for every budget! 💰\n\n✅ FREE - With ads (still awesome!)\n✅ PREMIUM - No ads, HD, downloads, early access!\n\nPricing per month:\n🇵🇭 Philippines: PHP 149 - cheaper than coffee! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90\n🇹🇭 Thailand: THB 99\n\nTotally worth it! Check viu.com for your region! 🎯');
+                    return 'We got options for every budget! 💰\n\n✅ FREE - With ads (still awesome!)\n✅ PREMIUM - No ads, HD, downloads, early access!\n\nPricing per month:\n🇵🇭 Philippines: PHP 149 - cheaper than coffee! ☕\n🇸🇬 Singapore: SGD 5.98\n🇲🇾 Malaysia: MYR 12.90\n🇹🇭 Thailand: THB 99\n\nTotally worth it! Check viu.com for your region! 🎯';
                 }
                 if(q.includes('premium') || q.includes('benefit') || q.includes('advantage') || q.includes('perks')) {
                     if(isTagalog) {
-                        return reply('Premium perks sobrang dami! 🎁\n\n✨ Walang ads - uninterrupted feels!\n📱 Download - panuorin offline, perfect sa byahe!\n🎥 HD quality 1080p - crystal clear!\n⚡ Early access - pinakauna ka manood ng new ep!\n👥 Multiple devices - share with fam!\n🌏 All your gadgets - phone, tablet, TV!\n🔄 Auto-sync - tuloy mo lang kahit saan!\n\nWorth it ang upgrade, promise! 🔥');
+                        return 'Premium perks sobrang dami! 🎁\n\n✨ Walang ads - uninterrupted feels!\n📱 Download - panuorin offline, perfect sa byahe!\n🎥 HD quality 1080p - crystal clear!\n⚡ Early access - pinakauna ka manood ng new ep!\n👥 Multiple devices - share with fam!\n🌏 All your gadgets - phone, tablet, TV!\n🔄 Auto-sync - tuloy mo lang kahit saan!\n\nWorth it ang upgrade, promise! 🔥';
                     }
-                    return reply('Premium perks are INSANE! 🚀\n\n✨ Zero ads - pure viewing bliss!\n📱 Download shows - watch on the plane!\n🎥 HD 1080p - crispy clear quality!\n⚡ Early access - be the first to watch!\n👥 Multiple devices - share with squad!\n🌏 Cross-device - phone, tablet, TV!\n🔄 Auto-sync - pick up where you left!\n\nSeriously worth the upgrade! 💎');
+                    return 'Premium perks are INSANE! 🚀\n\n✨ Zero ads - pure viewing bliss!\n📱 Download shows - watch on the plane!\n🎥 HD 1080p - crispy clear quality!\n⚡ Early access - be the first to watch!\n👥 Multiple devices - share with squad!\n🌏 Cross-device - phone, tablet, TV!\n🔄 Auto-sync - pick up where you left!\n\nSeriously worth the upgrade! 💎';
                 }
                 
                 // Support & contact
                 if(q.includes('contact') || q.includes('support') || q.includes('help') || q.includes('customer')) {
-                    return reply('Need help? 📧\n\n📧 Email: support@viu.com\n🌐 Visit: VIU Help Center at viu.com\n💬 Live Chat: Available in app\n📞 Phone support varies by country\n\nFor this survey, you can share feedback in the final comment section!');
+                    return 'Need help? 📧\n\n📧 Email: support@viu.com\n🌐 Visit: VIU Help Center at viu.com\n💬 Live Chat: Available in app\n📞 Phone support varies by country\n\nFor this survey, you can share feedback in the final comment section!';
                 }
                 
                 // Features
                 if(q.includes('download') || q.includes('offline')) {
-                    return reply('Yes! Viu Premium members can download shows and movies for offline viewing - perfect for travel or saving data! 📱✈️\n\nHow to download:\n1. Find your show\n2. Tap download icon\n3. Watch anytime, anywhere!\n\nFeature availability varies by content and region.');
+                    return 'Yes! Viu Premium members can download shows and movies for offline viewing - perfect for travel or saving data! 📱✈️\n\nHow to download:\n1. Find your show\n2. Tap download icon\n3. Watch anytime, anywhere!\n\nFeature availability varies by content and region.';
                 }
                 if(q.includes('subtitle') || q.includes('language')) {
-                    return reply('Viu provides subtitles in multiple languages! 🌏\n\nAvailable languages:\n• English\n• 中文 Chinese\n• Bahasa Indonesia\n• ภาษาไทย Thai\n• Tagalog\n• Arabic (select regions)\n\nLanguage availability depends on your region and content!');
+                    return 'Viu provides subtitles in multiple languages! 🌏\n\nAvailable languages:\n• English\n• 中文 Chinese\n• Bahasa Indonesia\n• ภาษาไทย Thai\n• Tagalog\n• Arabic (select regions)\n\nLanguage availability depends on your region and content!';
                 }
                 if(q.includes('device') || q.includes('platform')) {
-                    return reply('Watch Viu on ALL your devices! 📱💻📺\n\n✅ Mobile: iOS & Android\n✅ Web: Any browser at viu.com\n✅ Smart TV: Samsung, LG, Android TV\n✅ Streaming: Apple TV, Chromecast, Fire TV\n✅ Game Console: Select models\n\nSync your progress across all devices automatically!');
+                    return 'Watch Viu on ALL your devices! 📱💻📺\n\n✅ Mobile: iOS & Android\n✅ Web: Any browser at viu.com\n✅ Smart TV: Samsung, LG, Android TV\n✅ Streaming: Apple TV, Chromecast, Fire TV\n✅ Game Console: Select models\n\nSync your progress across all devices automatically!';
                 }
                 if(q.includes('quality') || q.includes('hd') || q.includes('resolution')) {
-                    return reply('Viu Premium offers HD streaming up to 1080p! 🎥\n\n📺 Quality options:\n• Auto (adjusts to your connection)\n• 1080p HD (Premium)\n• 720p\n• 480p\n• 360p\n\nVideo quality depends on your internet speed, device, and subscription. We automatically adjust for the best experience!');
+                    return 'Viu Premium offers HD streaming up to 1080p! 🎥\n\n📺 Quality options:\n• Auto (adjusts to your connection)\n• 1080p HD (Premium)\n• 720p\n• 480p\n• 360p\n\nVideo quality depends on your internet speed, device, and subscription. We automatically adjust for the best experience!';
                 }
                 
                 // App issues
                 if(q.includes('buffering') || q.includes('slow') || q.includes('loading') || q.includes('lag')) {
-                    return reply('Let\'s fix that buffering issue! 🔧\n\n1. Check your internet (need 5Mbps+ for HD)\n2. Close and restart the app\n3. Clear app cache\n4. Update to latest version\n5. Try lower quality setting\n\nStill having trouble? Contact support@viu.com');
+                    return 'Let\'s fix that buffering issue! 🔧\n\n1. Check your internet (need 5Mbps+ for HD)\n2. Close and restart the app\n3. Clear app cache\n4. Update to latest version\n5. Try lower quality setting\n\nStill having trouble? Contact support@viu.com';
                 }
                 if(q.includes('not working') || q.includes('error') || q.includes('bug') || q.includes('crash') || q.includes('broken')) {
-                    return reply('Sorry to hear that! Let\'s troubleshoot: 🛠️\n\n1. Update the Viu app (very important!)\n2. Restart your device completely\n3. Check internet connection\n4. Clear cache & data\n5. Reinstall app if needed\n\nIf issue persists, email support@viu.com with:\n• Device model\n• App version\n• Screenshot of error');
+                    return 'Sorry to hear that! Let\'s troubleshoot: 🛠️\n\n1. Update the Viu app (very important!)\n2. Restart your device completely\n3. Check internet connection\n4. Clear cache & data\n5. Reinstall app if needed\n\nIf issue persists, email support@viu.com with:\n• Device model\n• App version\n• Screenshot of error';
                 }
                 
                 // Recommendations
                 if(q.includes('recommend') || q.includes('suggest') || q.includes('popular') || q.includes('trending') || q.includes('best')) {
-                    return reply('Viu\'s recommendation engine suggests shows based on your viewing history! 🎬\n\n🔥 Currently Trending:\n• True Beauty (K-Drama)\n• Vincenzo (Action/Comedy)\n• Hometown Cha-Cha-Cha (Romance)\n• My Name (Thriller)\n• Alchemy of Souls (Fantasy)\n\nThe more you watch, the better our suggestions! You\'ll also rate our recommendations in this survey.');
+                    return 'Viu\'s recommendation engine suggests shows based on your viewing history! 🎬\n\n🔥 Currently Trending:\n• True Beauty (K-Drama)\n• Vincenzo (Action/Comedy)\n• Hometown Cha-Cha-Cha (Romance)\n• My Name (Thriller)\n• Alchemy of Souls (Fantasy)\n\nThe more you watch, the better our suggestions! You\'ll also rate our recommendations in this survey.';
                 }
                 
                 // Support
                 if(q.includes('support') || q.includes('help') || q.includes('contact') || q.includes('customer') || q.includes('tulong')) {
                     if(isTagalog) {
-                        return reply('Nandito kami para sayo! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com\n💬 Live Chat sa app\n📞 Phone support depende sa bansa\n\nPara sa survey, pwede ka mag-comment sa dulo! May tanong? Chat lang! 😊');
+                        return 'Nandito kami para sayo! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com\n💬 Live Chat sa app\n📞 Phone support depende sa bansa\n\nPara sa survey, pwede ka mag-comment sa dulo! May tanong? Chat lang! 😊';
                     }
-                    return reply('We got your back! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com  \n💬 Live Chat in app\n📞 Phone support (varies by country)\n\nFor this survey, drop comments at the end! Need anything? Just holler! 😊');
+                    return 'We got your back! 💪\n\n📧 Email: support@viu.com\n🌐 Help Center: viu.com  \n💬 Live Chat in app\n📞 Phone support (varies by country)\n\nFor this survey, drop comments at the end! Need anything? Just holler! 😊';
                 }
                 
                 // Thanks
                 if(q.includes('thank') || q.includes('salamat')) {
                     if(isTagalog) {
-                        return reply('Walang anuman, Viu Fam! 💛 Salamat din sa suporta mo! Keep watching and enjoying! Balik ka ulit ha! 👋✨');
+                        return 'Walang anuman, Viu Fam! 💛 Salamat din sa suporta mo! Keep watching and enjoying! Balik ka ulit ha! 👋✨';
                     }
-                    return reply('You\'re so welcome, Viu Fam! 💛 Thanks for being awesome! Keep streaming and stay entertained! Come back anytime! 👋✨');
+                    return 'You\'re so welcome, Viu Fam! 💛 Thanks for being awesome! Keep streaming and stay entertained! Come back anytime! 👋✨';
                 }
                 
                 // Fun random responses
                 if(q.includes('love') && (q.includes('you') || q.includes('u'))) {
-                    return reply('Awww, love you too, Viu Fam! 💕 But not as much as you\'ll love our K-dramas! 😉✨');
+                    return 'Awww, love you too, Viu Fam! 💕 But not as much as you\'ll love our K-dramas! 😉✨';
                 }
                 if(q.includes('bye') || q.includes('goodbye') || q.includes('paalam')) {
                     if(isTagalog) {
-                        return reply('Bye, Viu Fam! 👋 Ingat ka! Balik ka ulit for more K-drama feels! See you! 💛');
+                        return 'Bye, Viu Fam! 👋 Ingat ka! Balik ka ulit for more K-drama feels! See you! 💛';
                     }
-                    return reply('See you later, Viu Fam! 👋 Don\'t be a stranger! Come back for more K-drama tea! 💛✨');
+                    return 'See you later, Viu Fam! 👋 Don\'t be a stranger! Come back for more K-drama tea! 💛✨';
                 }
                 if(q.includes('joke') || q.includes('funny') || q.includes('nakakatawa')) {
-                    return reply('Why did the K-drama fan break up with their partner? Because they fell for the second male lead! 😂💔 Classic second lead syndrome! Want more? Watch our variety shows! 🎭');
+                    return 'Why did the K-drama fan break up with their partner? Because they fell for the second male lead! 😂💔 Classic second lead syndrome! Want more? Watch our variety shows! 🎭';
                 }
                 if(q.includes('food') || q.includes('eat') || q.includes('hungry') || q.includes('kain') || q.includes('gutom')) {
                     if(isTagalog) {
-                        return reply('Gutom ka? 🍜 Panoorin mo muna K-drama habang kumakain! Perfect combo: ramyeon + Korean drama = instant happiness! Kakagutom din yung food sa shows namin! 😋🍿');
+                        return 'Gutom ka? 🍜 Panoorin mo muna K-drama habang kumakain! Perfect combo: ramyeon + Korean drama = instant happiness! Kakagutom din yung food sa shows namin! 😋🍿';
                     }
-                    return reply('Hungry? 🍜 Perfect time for K-drama + snacks combo! Seriously though, the food in our shows will make you even hungrier! Ramyeon anyone? 😋🍿');
+                    return 'Hungry? 🍜 Perfect time for K-drama + snacks combo! Seriously though, the food in our shows will make you even hungrier! Ramyeon anyone? 😋🍿';
                 }
                 if(q.includes('sad') || q.includes('crying') || q.includes('malungkot')) {
                     if(isTagalog) {
-                        return reply('Aww bakit malungkot ka? 🥺 Panoorin mo comedy shows namin or kilig K-dramas! Guaranteed good vibes! Kailangan mo ng virtual hug? *sends hug* 🤗💛 You got this, Viu Fam!');
+                        return 'Aww bakit malungkot ka? 🥺 Panoorin mo comedy shows namin or kilig K-dramas! Guaranteed good vibes! Kailangan mo ng virtual hug? *sends hug* 🤗💛 You got this, Viu Fam!';
                     }
-                    return reply('Oh no, why the sad face? 🥺 Watch our rom-coms for instant serotonin boost! Or cry it out with a melodrama - therapeutic yan! *Virtual hug incoming* 🤗💛 You got this, Viu Fam!');
+                    return 'Oh no, why the sad face? 🥺 Watch our rom-coms for instant serotonin boost! Or cry it out with a melodrama - therapeutic yan! *Virtual hug incoming* 🤗💛 You got this, Viu Fam!';
                 }
                 if(q.includes('sleep') || q.includes('tulog') || q.includes('tired')) {
                     if(isTagalog) {
-                        return reply('Pagod ka? 😴 Dapat matulog na... PERO wait, one more episode lang! Yan palagi sinasabi natin! 😂 Kidding! Rest ka muna, Viu Fam! Shows namin dito pa rin bukas! 💤✨');
+                        return 'Pagod ka? 😴 Dapat matulog na... PERO wait, one more episode lang! Yan palagi sinasabi natin! 😂 Kidding! Rest ka muna, Viu Fam! Shows namin dito pa rin bukas! 💤✨';
                     }
-                    return reply('Tired? 😴 You should sleep... BUT WAIT, one more episode! That\'s what we all say! 😂 Kidding! Get some rest, Viu Fam! Our shows will still be here tomorrow! Sweet dreams! 💤✨');
+                    return 'Tired? 😴 You should sleep... BUT WAIT, one more episode! That\'s what we all say! 😂 Kidding! Get some rest, Viu Fam! Our shows will still be here tomorrow! Sweet dreams! 💤✨';
                 }
                 if(q.includes('cute') || q.includes('gwapo') || q.includes('maganda')) {
-                    return reply('Uy, thanks sa compliment! 😊 But wait till you see our K-drama actors! Sobrang gwapo and maganda! Pang-cover ng magazine! 😍✨ Check out our shows!');
+                    return 'Uy, thanks sa compliment! 😊 But wait till you see our K-drama actors! Sobrang gwapo and maganda! Pang-cover ng magazine! 😍✨ Check out our shows!';
                 }
                 if(q.includes('weather') || q.includes('panahon')) {
-                    return reply('Perfect weather para mag-binge watch! ☁️ Whether sunny or rainy, Viu is always a good idea! Stay cozy indoors with our shows! 🌈📺');
+                    return 'Perfect weather para mag-binge watch! ☁️ Whether sunny or rainy, Viu is always a good idea! Stay cozy indoors with our shows! 🌈📺';
                 }
                 
                 // Default - fun and helpful
                 if(isTagalog) {
-                    return reply('Hmm, hindi ko sure kung gets kita pero game ako sumagot! 😄 Tanong mo lang ako about:\n\n📋 Survey - paano magsimula, ano tanong\n📺 Viu shows - K-drama, anime, movies  \n🌏 Available countries\n💎 Premium benefits\n📱 Tech support\n\nO kahit random lang! Chat tayo, Viu Fam! Kamusta? 💛');
+                    return 'Hmm, hindi ko sure kung gets kita pero game ako sumagot! 😄 Tanong mo lang ako about:\n\n📋 Survey - paano magsimula, ano tanong\n📺 Viu shows - K-drama, anime, movies  \n🌏 Available countries\n💎 Premium benefits\n📱 Tech support\n\nO kahit random lang! Chat tayo, Viu Fam! Kamusta? 💛';
                 }
-                return reply('Interesting question! 😄 I\'m here to chat about anything! Try asking me about:\n\n📋 The survey - how to start, what to expect\n📺 Viu content - K-dramas, anime, movies\n🌏 Where Viu is available  \n💎 Premium perks\n📱 Technical stuff\n\nOr just chat randomly - I\'m fun like that! What\'s on your mind, Viu Fam? ✨');
+                return 'Interesting question! 😄 I\'m here to chat about anything! Try asking me about:\n\n📋 The survey - how to start, what to expect\n📺 Viu content - K-dramas, anime, movies\n🌏 Where Viu is available  \n💎 Premium perks\n📱 Technical stuff\n\nOr just chat randomly - I\'m fun like that! What\'s on your mind, Viu Fam? ✨';
             }
 
             // Message rendering helpers
             function addUserMessage(text, timestamp = Date.now(), skipHistory = false) {
-                const ur = document.createElement('div');
+                const ur = document.createElement('div';
                 ur.className = 'chat-row user';
-                const ub = document.createElement('div');
+                const ub = document.createElement('div';
                 ub.className = 'chat-bubble-user';
                 ub.textContent = text;
                 ur.appendChild(ub);
@@ -769,29 +768,29 @@
             }
             
             function addBotMessage(text, timestamp = Date.now(), buttons = [], skipHistory = false) {
-                const br = document.createElement('div');
+                const br = document.createElement('div';
                 br.className = 'chat-row bot';
                 
-                const ba = document.createElement('img');
+                const ba = document.createElement('img';
                 ba.className = 'chat-avatar';
                 ba.src = '/chatbot.svg';
                 ba.alt = 'Bot';
                 
-                const bb = document.createElement('div');
+                const bb = document.createElement('div';
                 bb.className = 'chat-bubble-bot';
                 
                 // Add message text
-                const textDiv = document.createElement('div');
+                const textDiv = document.createElement('div';
                 textDiv.className = 'bot-message-text';
-                textDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+                textDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>';
                 bb.appendChild(textDiv);
                 
                 // Quick action buttons
                 if(buttons && buttons.length > 0) {
-                    const btnContainer = document.createElement('div');
+                    const btnContainer = document.createElement('div';
                     btnContainer.className = 'quick-action-buttons';
                     buttons.forEach(btnText => {
-                        const btn = document.createElement('button');
+                        const btn = document.createElement('button';
                         btn.className = 'quick-action-btn';
                         btn.textContent = btnText;
                         btn.addEventListener('click', () => {
@@ -816,7 +815,7 @@
             }
             
             function escapeHtml(text) {
-                const div = document.createElement('div');
+                const div = document.createElement('div';
                 div.textContent = text;
                 return div.innerHTML;
             }
@@ -835,15 +834,15 @@
                 addUserMessage(text);
                 
                 // Show typing indicator
-                const br = document.createElement('div');
+                const br = document.createElement('div';
                 br.className = 'chat-row bot typing-indicator';
-                const ba = document.createElement('img');
+                const ba = document.createElement('img';
                 ba.className = 'chat-avatar';
                 ba.src = '/chatbot.svg';
                 ba.alt = 'Bot';
-                const bb = document.createElement('div');
+                const bb = document.createElement('div';
                 bb.className = 'chat-bubble-bot';
-                const ell = document.createElement('div');
+                const ell = document.createElement('div';
                 ell.className = 'typing';
                 ell.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
                 bb.appendChild(ell);
@@ -872,7 +871,7 @@
             
             // Clear old localStorage chat history on page load to show fresh welcome
             if(localStorage.getItem('viu_chat_history')) {
-                localStorage.removeItem('viu_chat_history');
+                localStorage.removeItem('viu_chat_history';
                 chatState.conversationHistory = [];
             }
         })();
@@ -881,14 +880,14 @@
         function goToPage(pageId, progress) {
             // Hide all pages EXCEPT splash screen, chatbot overlay, and floating button
             document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
-            document.getElementById(pageId).classList.remove('hidden-page');
+            document.getElementById(pageId).classList.remove('hidden-page';
             if(progress !== undefined) updateProgress(progress);
             lucide.createIcons();
         }
 
         function goBack(pageId) {
             document.querySelectorAll('body > div:not(#splash-screen):not(.chat-overlay):not(.fixed)').forEach(p => p.classList.add('hidden-page'));
-            document.getElementById(pageId).classList.remove('hidden-page');
+            document.getElementById(pageId).classList.remove('hidden-page';
             if(pageId === 'user-details-page') updateProgress(0);
             if(pageId === 'privacy-page') updateProgress(8);
             if(pageId === 'genre-page') updateProgress(17);
@@ -897,18 +896,18 @@
         }
 
         function updateProgress(percent) {
-            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = percent + '%');
-            document.querySelectorAll('.progress-text').forEach(el => el.innerText = percent + '%');
+            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = percent + '%';
+            document.querySelectorAll('.progress-text').forEach(el => el.innerText = percent + '%';
         }
 
         // ==================== 5. FLOW LOGIC ====================
         function handlePrivacyContinue() {
-            if(!document.getElementById('privacy-check').checked) return alert('Please accept privacy policy.');
+            if(!document.getElementById('privacy-check').checked) return alert('Please accept privacy policy.';
             goToPage('genre-page', 17);
         }
 
         function toggleGenre(el) {
-            el.classList.toggle('selected');
+            el.classList.toggle('selected';
             const text = el.innerText;
             if(selectedGenres.includes(text)) {
                 selectedGenres = selectedGenres.filter(g => g !== text);
@@ -926,7 +925,7 @@
         function loadQuestion() {
             const data = questions[currentQIndex];
             const num = currentQIndex + 1;
-            const qTitle = document.getElementById('q-title');
+            const qTitle = document.getElementById('q-title';
             
             document.getElementById('q-number').innerText = num < 10 ? `0${num}` : num;
             qTitle.innerText = data.title;
@@ -945,10 +944,10 @@
         }
 
         function renderStars(currentRating) {
-            const container = document.getElementById('star-container');
+            const container = document.getElementById('star-container';
             container.innerHTML = '';
             for (let i = 1; i <= 5; i++) {
-                const starDiv = document.createElement('div');
+                const starDiv = document.createElement('div';
                 const isFilled = i <= currentRating;
                 const fillColor = isFilled ? '#F6BE00' : '#E5E7EB'; 
                 const iconClass = isFilled ? 'star-icon active' : 'star-icon';
@@ -961,7 +960,7 @@
         }
 
         function previewStars(hoverIndex) {
-            const svgs = document.querySelectorAll('#star-container svg');
+            const svgs = document.querySelectorAll('#star-container svg';
             svgs.forEach((svg, idx) => {
                 if (idx < hoverIndex) { svg.style.fill = '#F6BE00'; svg.style.color = '#F6BE00'; } 
                 else { svg.style.fill = '#E5E7EB'; svg.style.color = '#E5E7EB'; }
@@ -972,11 +971,11 @@
             if(currentQIndex < questions.length - 1) {
                 currentQIndex++;
                 loadQuestion();
-                const mainContent = document.querySelector('#question-page .fade-in');
+                const mainContent = document.querySelector('#question-page .fade-in';
                 if(mainContent) {
-                    mainContent.classList.remove('fade-in');
+                    mainContent.classList.remove('fade-in';
                     void mainContent.offsetWidth; 
-                    mainContent.classList.add('fade-in');
+                    mainContent.classList.add('fade-in';
                 }
             } else {
                 goToPage('final-page', 95);
@@ -984,7 +983,7 @@
         }
 
         function handleQuestionBack() {
-            if(currentQIndex > 0) { currentQIndex--; loadQuestion(); } else { goBack('genre-page'); }
+            if(currentQIndex > 0) { currentQIndex--; loadQuestion(); } else { goBack('genre-page'; }
         }
 
         function handleFinalBack() {
@@ -994,13 +993,13 @@
         }
 
         function goToSummary() {
-            const listContainer = document.getElementById('summary-list');
+            const listContainer = document.getElementById('summary-list';
             listContainer.innerHTML = ''; 
             questions.forEach((q, index) => {
                 const num = index + 1;
                 const numStr = num < 10 ? `0${num}` : num;
                 const rating = q.rating || 0; 
-                const row = document.createElement('div');
+                const row = document.createElement('div';
                 row.className = 'flex justify-between items-center py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors';
                 row.innerHTML = `<div class="text-gray-500 font-medium text-lg"><span class="font-bold text-gray-400 mr-2">${numStr}.</span> ${q.title}</div><div class="flex items-center gap-1 text-viu-yellow font-bold text-xl"><span>${rating}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#F6BE00" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>`;
                 listContainer.appendChild(row);
@@ -1031,22 +1030,22 @@
                 });
                 if(!res.ok){
                     const msg = await res.text();
-                    showToast('error', msg || 'Failed to submit');
+                    showToast('error', msg || 'Failed to submit';
                     return;
                 }
                 // Also persist locally to support admin listing fallback
                 try {
                     const key = 'viu_submissions';
-                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]';
                     const withId = Object.assign({ id: Date.now().toString() }, payload);
                     arr.push(withId);
                     localStorage.setItem(key, JSON.stringify(arr));
                 } catch(_) { /* ignore local storage errors */ }
             } catch(e) {
-                showToast('error','Network error while submitting');
+                showToast('error','Network error while submitting';
                 return;
             }
-            goToPage('thank-you-page');
+            goToPage('thank-you-page';
         }
 
         function resetSurvey() {
@@ -1054,7 +1053,7 @@
             currentQIndex = 0;
             selectedGenres = [];
             document.querySelectorAll('input').forEach(input => { if(input.type === 'checkbox') input.checked = false; else input.value = ''; });
-            document.querySelectorAll('textarea').forEach(t => t.value = '');
+            document.querySelectorAll('textarea').forEach(t => t.value = '';
             document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('selected'));
             goToPage('welcome-page', 0);
         }
@@ -1081,34 +1080,34 @@
             buildCountryDropdown();
         });
         function buildCountryDropdown(){
-            const listEl = document.getElementById('country-list');
+            const listEl = document.getElementById('country-list';
             if(!listEl) return;
             listEl.innerHTML = '';
             viuCountries.forEach(c => {
-                const li = document.createElement('li');
+                const li = document.createElement('li';
                 li.className = 'py-3 px-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-gray-700';
                 li.innerHTML = `<span class="fi fi-${c.iso2} flag-ico"></span><span class="flex-1">${c.name} - ${c.code}</span>`;
                 li.addEventListener('click', () => selectCountry(c));
                 listEl.appendChild(li);
             });
-            const trigger = document.getElementById('country-select-trigger');
+            const trigger = document.getElementById('country-select-trigger';
             trigger.addEventListener('click', toggleCountryDropdown);
             document.addEventListener('click', (e) => {
-                const wrap = document.getElementById('country-select-wrapper');
+                const wrap = document.getElementById('country-select-wrapper';
                 if(!wrap.contains(e.target)) {
-                    document.getElementById('country-dropdown').classList.add('hidden');
+                    document.getElementById('country-dropdown').classList.add('hidden';
                 }
             });
         }
         function toggleCountryDropdown(){
-            document.getElementById('country-dropdown').classList.toggle('hidden');
+            document.getElementById('country-dropdown').classList.toggle('hidden';
         }
         function selectCountry(c){
             document.getElementById('user-country').value = c.name;
-            const el = document.getElementById('country-selected-text');
+            const el = document.getElementById('country-selected-text';
             el.innerHTML = `<span class="fi fi-${c.iso2} flag-ico align-middle"></span> <span class="align-middle">${c.name} (${c.code})</span>`;
-            el.classList.remove('text-gray-400');
-            document.getElementById('country-dropdown').classList.add('hidden');
+            el.classList.remove('text-gray-400';
+            document.getElementById('country-dropdown').classList.add('hidden';
         }
     </script>
 </body>
