@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
@@ -143,6 +143,32 @@
         
         .bot-message-text {
             line-height: 1.6;
+            font-weight: normal;
+        }
+        
+        .bot-message-text strong,
+        .bot-message-text b {
+            font-weight: normal;
+        }
+        
+        /* Suggested question chips */
+        .suggested-chip {
+            background: white; 
+            border: 1.5px solid #F6BE00; 
+            color: #111827; 
+            padding: 8px 14px; 
+            border-radius: 16px; 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .suggested-chip:hover {
+            background: #F6BE00; 
+            color: black; 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(246,190,0,0.3);
         }
         
         /* Flag icon alignment */
@@ -350,10 +376,12 @@
 
             <!-- Body -->
             <div class="chat-body">
-                <div class="chat-row bot">
-                    <img src="/chatbot.svg" class="chat-avatar" alt="Bot" />
-                    <div class="chat-bubble-bot"><span>Hello, Viu Fam! 👋 How can we help?</span></div>
-                </div>
+                <!-- Initial greeting will be loaded dynamically -->
+            </div>
+
+            <!-- Suggested Questions -->
+            <div id="suggested-questions" class="px-4 pb-2 flex flex-wrap gap-2">
+                <!-- Will be populated dynamically -->
             </div>
 
             <!-- Input -->
@@ -445,7 +473,8 @@
             lastActivity: Date.now(),
             userLanguage: 'en', // Enhancement #3: Multi-language
             inactivityTimer: null, // Enhancement #8: Proactive suggestions
-            feedbackGiven: new Set() // Enhancement #14: Track feedback
+            feedbackGiven: new Set(), // Enhancement #14: Track feedback
+            conversationId: null // API conversation ID
         };
         
         // Load persistent chat history from localStorage
@@ -486,7 +515,7 @@
             chatState.inactivityTimer = setTimeout(() => {
                 if(chatState.opened && Date.now() - chatState.lastActivity > 30000) {
                     const proactiveMessages = [
-                        'Need help? I can explain any question! 😊',
+                        'Need help? I can explain any question! ðŸ˜Š',
                         'Stuck? Ask me about the survey or Viu features!',
                         'I\'m here if you need assistance! Just type your question.',
                     ];
@@ -505,22 +534,22 @@
             // Enhancement #3: Multi-language support
             const translations = {
                 en: {
-                    greeting: 'Hello, Viu Fam! 👋 I\'m your Virtual Assistant.',
+                    greeting: 'Hello, Viu Fam! ðŸ‘‹ I\'m your Virtual Assistant.',
                     surveyStart: 'To start the survey: 1) Click "Start Survey" on the welcome screen',
-                    countries: 'Viu is available in: 🇭🇰 Hong Kong, 🇸🇬 Singapore, 🇲🇾 Malaysia',
-                    help: 'I can help with: 📋 Survey questions, 📺 What Viu offers'
+                    countries: 'Viu is available in: ðŸ‡­ðŸ‡° Hong Kong, ðŸ‡¸ðŸ‡¬ Singapore, ðŸ‡²ðŸ‡¾ Malaysia',
+                    help: 'I can help with: ðŸ“‹ Survey questions, ðŸ“º What Viu offers'
                 },
                 zh: {
-                    greeting: '您好，Viu家族！👋 我是您的虚拟助手。',
-                    surveyStart: '开始调查：1) 点击欢迎屏幕上的"开始调查"',
-                    countries: 'Viu 可用地区: 🇭🇰 香港, 🇸🇬 新加坡, 🇲🇾 马来西亚',
-                    help: '我可以帮助: 📋 调查问题, 📺 Viu提供什么'
+                    greeting: 'æ‚¨å¥½ï¼ŒViuå®¶æ—ï¼ðŸ‘‹ æˆ‘æ˜¯æ‚¨çš„è™šæ‹ŸåŠ©æ‰‹ã€‚',
+                    surveyStart: 'å¼€å§‹è°ƒæŸ¥ï¼š1) ç‚¹å‡»æ¬¢è¿Žå±å¹•ä¸Šçš„"å¼€å§‹è°ƒæŸ¥"',
+                    countries: 'Viu å¯ç”¨åœ°åŒº: ðŸ‡­ðŸ‡° é¦™æ¸¯, ðŸ‡¸ðŸ‡¬ æ–°åŠ å¡, ðŸ‡²ðŸ‡¾ é©¬æ¥è¥¿äºš',
+                    help: 'æˆ‘å¯ä»¥å¸®åŠ©: ðŸ“‹ è°ƒæŸ¥é—®é¢˜, ðŸ“º Viuæä¾›ä»€ä¹ˆ'
                 },
                 th: {
-                    greeting: 'สวัสดี Viu Family! 👋 ฉันคือผู้ช่วยเสมือนของคุณ',
-                    surveyStart: 'เริ่มแบบสำรวจ: 1) คลิก "เริ่มแบบสำรวจ" บนหน้าต้อนรับ',
-                    countries: 'Viu มีให้บริการใน: 🇭🇰 ฮ่องกง, 🇸🇬 สิงคโปร์, 🇲🇾 มาเลเซีย',
-                    help: 'ฉันสามารถช่วย: 📋 คำถามแบบสำรวจ, 📺 Viu มีอะไรบ้าง'
+                    greeting: 'à¸ªà¸§à¸±à¸ªà¸”à¸µ Viu Family! ðŸ‘‹ à¸‰à¸±à¸™à¸„à¸·à¸­à¸œà¸¹à¹‰à¸Šà¹ˆà¸§à¸¢à¹€à¸ªà¸¡à¸·à¸­à¸™à¸‚à¸­à¸‡à¸„à¸¸à¸“',
+                    surveyStart: 'à¹€à¸£à¸´à¹ˆà¸¡à¹à¸šà¸šà¸ªà¸³à¸£à¸§à¸ˆ: 1) à¸„à¸¥à¸´à¸ "à¹€à¸£à¸´à¹ˆà¸¡à¹à¸šà¸šà¸ªà¸³à¸£à¸§à¸ˆ" à¸šà¸™à¸«à¸™à¹‰à¸²à¸•à¹‰à¸­à¸™à¸£à¸±à¸š',
+                    countries: 'Viu à¸¡à¸µà¹ƒà¸«à¹‰à¸šà¸£à¸´à¸à¸²à¸£à¹ƒà¸™: ðŸ‡­ðŸ‡° à¸®à¹ˆà¸­à¸‡à¸à¸‡, ðŸ‡¸ðŸ‡¬ à¸ªà¸´à¸‡à¸„à¹‚à¸›à¸£à¹Œ, ðŸ‡²ðŸ‡¾ à¸¡à¸²à¹€à¸¥à¹€à¸‹à¸µà¸¢',
+                    help: 'à¸‰à¸±à¸™à¸ªà¸²à¸¡à¸²à¸£à¸–à¸Šà¹ˆà¸§à¸¢: ðŸ“‹ à¸„à¸³à¸–à¸²à¸¡à¹à¸šà¸šà¸ªà¸³à¸£à¸§à¸ˆ, ðŸ“º Viu à¸¡à¸µà¸­à¸°à¹„à¸£à¸šà¹‰à¸²à¸‡'
                 }
             };
             
@@ -564,154 +593,6 @@
                 return 'neutral';
             }
             
-            // Simplified chatbot function (removed reply() wrapper, robust includes matching)
-            function localBot(text){
-                if(!text) return 'Hi Viu Fam! Ask me anything about the survey or Viu.';
-                const q = text.toLowerCase().trim();
-                const isTagalog = /\b(kamusta|kumusta|musta|ano|paano|bakit|saan|kelan|salamat|thanks|gutom|tulog|malungkot|paalam|bye|presyo|magkano|sulit|palabas|bansa|kdrama|k-drama)\b/i.test(q);
-
-                // Greetings
-                if(['hi','hello','hey','kamusta','kumusta','musta','yo','sup','good morning','good afternoon','good evening'].some(k=>q.includes(k))) {
-                    return isTagalog
-                        ? 'Kamusta, Viu Fam! 👋 Ako ang iyong virtual assistant. Tanong ka lang tungkol sa survey, Viu shows, o kahit random. Ano gusto mo malaman?'
-                        : 'Hello, Viu Fam! 👋 I\'m your virtual assistant. Ask me anything about the survey, Viu content, countries, pricing, or just chat! What\'s up?';
-                }
-                
-                // Survey help
-                if(q.includes('survey') && (q.includes('start') || q.includes('begin') || q.includes('how') || q.includes('paano') || q.includes('simula'))) {
-                    return isTagalog
-                        ? 'Para magsimula: 1) Click "Start Survey" 2) Piliin bansa 3) Accept privacy 4) Piliin genres 5) I-rate ang 10 categories. 3-5 minutes lang.'
-                        : 'To start: 1) Click "Start Survey" 2) Pick country 3) Accept privacy 4) Choose genres 5) Rate 10 categories. Takes 3–5 minutes.';
-                }
-                if(q.includes('question') || q.includes('tanong')) {
-                    return isTagalog
-                        ? 'May 10 survey topics: Quality, Performance, Library, Subtitles, UI, Search, Recommendations, Offline Download, Support, Value. Rate 1–5 stars.'
-                        : 'There are 10 survey topics: Quality, Performance, Library, Subtitles, UI, Search, Recommendations, Offline Download, Support, Value. Rate 1–5 stars.';
-                }
-                if(q.includes('why') || q.includes('bakit') || q.includes('purpose')) {
-                    return isTagalog
-                        ? 'Ginagamit namin feedback para i-improve content, app speed, features at overall experience mo. Boses mo = direksyon ng Viu.'
-                        : 'We use your feedback to improve content, app speed, features and overall experience. Your voice literally shapes Viu.';
-                }
-                if(q.includes('long') || q.includes('time') || q.includes('minutes')) {
-                    return isTagalog ? '3–5 minutes lang ang survey.' : 'Survey takes only 3–5 minutes.';
-                }
-                if(q.includes('anonymous') || q.includes('privacy') || q.includes('data')) {
-                    return isTagalog
-                        ? 'Anonymous ang ratings/comments. Name/email optional. Ginagamit lang para i-improve Viu.'
-                        : 'Ratings/comments are anonymous. Name/email optional. Used only to improve Viu.';
-                }
-                
-                // About Viu / identity
-                if((q.includes('what') && q.includes('viu')) || q.includes('ano ang viu') || (q.includes('who') && q.includes('you'))) {
-                    return isTagalog
-                        ? 'Viu: streaming para sa Asian content – K-dramas, Thai, anime, movies, exclusives. Focus sa fresh episodes.'
-                        : 'Viu: streaming for Asian content – K-dramas, Thai dramas, anime, movies, exclusives. Fresh episodes fast.';
-                }
-                if(q.includes('content') || q.includes('watch') || q.includes('show') || q.includes('movie') || q.includes('palabas')) {
-                    return isTagalog
-                        ? 'Content: K-dramas, Thai dramas, anime, Asian movies, variety, Viu Originals. Halimbawa: True Beauty, Vincenzo, Hometown Cha-Cha-Cha.'
-                        : 'Content: K-dramas, Thai dramas, anime, Asian movies, variety, Viu Originals. Examples: True Beauty, Vincenzo, Hometown Cha-Cha-Cha.';
-                }
-                if(q.includes('kdrama') || q.includes('k-drama') || q.includes('korean')) {
-                    return isTagalog
-                        ? 'K-drama hub: mabilis labas ng episodes, maraming genre (romance, thriller, comedy), may subtitles.'
-                        : 'K-drama hub: fast episode releases, many genres (romance, thriller, comedy), multilingual subtitles.';
-                }
-                if(q.includes('original') || q.includes('exclusive')) {
-                    return isTagalog
-                        ? 'Viu Originals: exclusive shows na hindi mo makikita sa ibang platform.'
-                        : 'Viu Originals are exclusive shows you won\'t find elsewhere.';
-                }
-                
-                if(q.includes('country') || q.includes('countries') || q.includes('available') || q.includes('region') || q.includes('where') || q.includes('saan') || q.includes('bansa')) {
-                    return isTagalog
-                        ? 'Available: Philippines, Hong Kong, Singapore, Malaysia, Indonesia, Thailand, ilang Middle East countries.'
-                        : 'Available in: Philippines, Hong Kong, Singapore, Malaysia, Indonesia, Thailand and several Middle East countries.';
-                }
-                
-                if(q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('magkano') || q.includes('presyo')) {
-                    return isTagalog
-                        ? 'Plans: FREE (may ads) at PREMIUM (walang ads + HD + download). Halimbawa PH: PHP149/mo. Check viu.com for exact.'
-                        : 'Plans: FREE (ads) and PREMIUM (no ads + HD + download). Example PH: PHP149/mo. Check viu.com for region details.';
-                }
-                if(q.includes('premium') || q.includes('benefit') || q.includes('perk') || q.includes('advantage')) {
-                    return isTagalog
-                        ? 'Premium: walang ads, HD up to 1080p, downloads, early access episodes.'
-                        : 'Premium: no ads, HD up to 1080p, downloads, early access episodes.';
-                }
-                
-                if(q.includes('contact') || q.includes('support') || q.includes('help')) {
-                    return isTagalog
-                        ? 'Support: email support@viu.com o Help Center sa viu.com. May in-app live chat sa ilang region.'
-                        : 'Support: email support@viu.com or visit the Help Center at viu.com. Some regions have in-app live chat.';
-                }
-                
-                // Features
-                if(q.includes('download') || q.includes('offline')) {
-                    return isTagalog ? 'Downloads (offline) ay nasa Premium plan.' : 'Offline downloads are available on the Premium plan.';
-                }
-                if(q.includes('subtitle') || q.includes('language')) {
-                    return isTagalog ? 'May subtitles: English, Tagalog, Thai, Indonesian, minsan Chinese/Arabic depende sa region.' : 'Subtitles include English, Tagalog, Thai, Indonesian, sometimes Chinese/Arabic depending on region.';
-                }
-                if(q.includes('device') || q.includes('platform')) {
-                    return isTagalog ? 'Supported: mobile apps, web browser, ilang smart TV & casting devices.' : 'Supported: mobile apps, web browser, some smart TVs & casting devices.';
-                }
-                if(q.includes('quality') || q.includes('hd') || q.includes('resolution')) {
-                    return isTagalog ? 'HD up to 1080p sa Premium. Auto adjust depende sa internet.' : 'HD up to 1080p on Premium. Auto-adjusts based on connection.';
-                }
-                
-                // Technical issues
-                if(q.includes('buffering') || q.includes('slow') || q.includes('lag')) {
-                    return isTagalog ? 'Tips: check internet, restart app, clear cache, babaan quality kung kailangan.' : 'Tips: check internet, restart app, clear cache, lower quality if needed.';
-                }
-                if(q.includes('error') || q.includes('bug') || q.includes('crash') || q.includes('not working') || q.includes('broken')) {
-                    return isTagalog ? 'Subukan: update app, restart device, reinstall. Kung tuloy problema email support@viu.com.' : 'Try: update app, restart device, reinstall. If still broken email support@viu.com.';
-                }
-                
-                if(q.includes('recommend') || q.includes('suggest') || q.includes('popular') || q.includes('trending') || q.includes('best')) {
-                    return isTagalog ? 'Sample trending: True Beauty, Vincenzo, Hometown Cha-Cha-Cha. Mas tumatama suggestions habang nanonood ka.' : 'Trending examples: True Beauty, Vincenzo, Hometown Cha-Cha-Cha. Recommendations improve the more you watch.';
-                }
-                
-                if(q.includes('support') || q.includes('tulong')) {
-                    return isTagalog ? 'Suporta: email support@viu.com o Help Center. May live chat sa ilang region.' : 'Support: email support@viu.com or Help Center. Some regions have live chat.';
-                }
-                
-                if(q.includes('thank') || q.includes('salamat')) {
-                    return isTagalog ? 'Walang anuman! Salamat din sa feedback mo.' : 'You\'re welcome! Thanks for your feedback.';
-                }
-                
-                if(q.includes('love') && (q.includes('you') || q.includes('u'))) {
-                    return isTagalog ? 'Love you rin, Viu Fam! 💕' : 'Love you too, Viu Fam! 💕';
-                }
-                if(q.includes('bye') || q.includes('goodbye') || q.includes('paalam')) {
-                    return isTagalog ? 'Ingat! Balik ka ulit.' : 'Take care! Come back anytime.';
-                }
-                if(q.includes('joke') || q.includes('funny') || q.includes('nakakatawa')) {
-                    return isTagalog ? 'K-drama fan: lagi sa second lead 😂' : 'K-drama fan always falls for the second lead 😂';
-                }
-                if(q.includes('food') || q.includes('eat') || q.includes('hungry') || q.includes('gutom') || q.includes('kain')) {
-                    return isTagalog ? 'K-drama + ramyeon = solid combo.' : 'K-drama + ramen = elite combo.';
-                }
-                if(q.includes('sad') || q.includes('cry') || q.includes('malungkot')) {
-                    return isTagalog ? 'Try light rom-com para gumaan pakiramdam.' : 'Try a light rom-com to boost your mood.';
-                }
-                if(q.includes('sleep') || q.includes('tulog') || q.includes('tired')) {
-                    return isTagalog ? 'Pahinga ka muna, pwede mong ipagpatuloy bukas.' : 'Rest first, you can resume tomorrow.';
-                }
-                if(q.includes('cute') || q.includes('gwapo') || q.includes('maganda')) {
-                    return isTagalog ? 'Salamat! Panoorin mo casts sa dramas – mas gwapo/maganda.' : 'Thanks! Check the drama casts – even prettier.';
-                }
-                if(q.includes('weather') || q.includes('panahon')) {
-                    return isTagalog ? 'Anumang panahon, pwede mag-stream.' : 'Any weather is streaming weather.';
-                }
-                
-                // Default fallback
-                return isTagalog
-                    ? 'Pwede mong itanong: survey, content, countries, pricing, premium, teknikal issues, recommendations.'
-                    : 'You can ask about: survey, content, countries, pricing, premium, tech issues, recommendations.';
-            }
-
             // Message rendering helpers
             function addUserMessage(text, timestamp = Date.now(), skipHistory = false) {
                 const ur = document.createElement('div');
@@ -791,6 +672,11 @@
                 // Reset inactivity timer
                 resetInactivityTimer();
                 
+                // Hide suggestions immediately when user sends first message
+                if(suggestedContainer && chatState.conversationHistory.filter(m => m.type === 'user').length === 0) {
+                    suggestedContainer.style.display = 'none';
+                }
+                
                 // Add user message
                 addUserMessage(text);
                 
@@ -812,17 +698,46 @@
                 body.appendChild(br);
                 body.scrollTop = body.scrollHeight;
                 
-                // Simulate thinking delay
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Use local chatbot (always)
-                const response = localBot(text);
-                
-                // Remove typing indicator
-                if(body.contains(br)) body.removeChild(br);
-                
-                // Add bot response - localBot now returns just text strings
-                addBotMessage(response, Date.now(), []);
+                try {
+                    // Use persistent conversation ID for entire session
+                    if (!chatState.conversationId) {
+                        chatState.conversationId = 'chat-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    }
+                    const res = await fetch('/api/chatbot/ask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            question: text,
+                            conversation_id: chatState.conversationId
+                        })
+                    });
+                    
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    
+                    const data = await res.json();
+                    
+                    // Store conversation ID
+                    if(data.conversation_id) {
+                        chatState.conversationId = data.conversation_id;
+                    }
+                    
+                    // Remove typing indicator
+                    if(body.contains(br)) body.removeChild(br);
+                    
+                    // Add bot response from API
+                    const response = data.data?.answer || data.answer || 'Sorry, no response';
+                    addBotMessage(response, Date.now(), []);
+                } catch (err) {
+                    console.error('API Error:', err);
+                    // Remove typing indicator
+                    if(body.contains(br)) body.removeChild(br);
+                    // Show error message with proper emoji
+                    addBotMessage('Bestie, may konting connection issue. Paki-try ulit? 🥺', Date.now(), []);
+                }
                 
                 body.scrollTop = body.scrollHeight;
             }
@@ -835,6 +750,93 @@
                 localStorage.removeItem('viu_chat_history');
                 chatState.conversationHistory = [];
             }
+            
+            // Initialize with greeting from API
+            async function initGreeting() {
+                try {
+                    const res = await fetch('/api/chatbot/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            question: 'hello',
+                            conversation_id: chatState.conversationId || 'init-' + Date.now()
+                        })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if(data.conversation_id) chatState.conversationId = data.conversation_id;
+                        const greeting = data.data?.answer || data.answer || 'Hello! ðŸ‘‹';
+                        addBotMessage(greeting, Date.now(), []);
+                    } else {
+                        // API failed - show error
+                        addBotMessage('API connection issue (' + res.status + '). Try refreshing? 😭', Date.now(), []);
+                    }
+                } catch(e) {
+                    console.error('Init greeting failed:', e);
+                    addBotMessage('Cannot connect to AI. Error: ' + e.message, Date.now(), []);
+                }
+            }
+            
+            // Load greeting when chat body is ready
+            if(body.children.length === 0) {
+                initGreeting();
+            }
+
+            // ==================== SUGGESTED QUESTIONS ====================
+            const suggestedContainer = document.getElementById('suggested-questions');
+            
+            const suggestedQuestions = [
+                "What's new on Viu?",
+                "How do I download content?",
+                "Paano mag-subscribe?",
+                "How to cancel subscription?",
+                "Ano ang mga genre?",
+                "What languages are available?",
+                "How many devices can I use?",
+                "Magkano ang premium?",
+                "Is there Korean drama?",
+                "How to change password?"
+            ];
+
+            function showSuggestedQuestions() {
+                if(!suggestedContainer) return;
+                
+                // Hide suggestions if user has already sent a message
+                if(chatState.conversationHistory.filter(m => m.type === 'user').length > 0) {
+                    suggestedContainer.style.display = 'none';
+                    return;
+                }
+                
+                suggestedContainer.style.display = 'flex';
+                
+                // Get 3 random questions
+                const shuffled = [...suggestedQuestions].sort(() => Math.random() - 0.5);
+                const selected = shuffled.slice(0, 3);
+                
+                suggestedContainer.innerHTML = '';
+                selected.forEach(q => {
+                    const chip = document.createElement('button');
+                    chip.className = 'suggested-chip';
+                    chip.textContent = q;
+                    chip.onclick = () => {
+                        input.value = q;
+                        sendBtn.click();
+                        // Hide suggestions immediately after first user message
+                        suggestedContainer.style.display = 'none';
+                    };
+                    suggestedContainer.appendChild(chip);
+                });
+            }
+
+            // Show suggestions on load (only if no conversation history)
+            showSuggestedQuestions();
+            
+            // Refresh suggestions every 15 seconds ONLY if user hasn't sent any messages
+            setInterval(() => {
+                if(chatState.conversationHistory.length === 0 && Date.now() - chatState.lastActivity > 15000) {
+                    showSuggestedQuestions();
+                }
+            }, 15000);
         })();
 
         // ==================== 4. NAVIGATION ====================
