@@ -44,20 +44,37 @@
     addMessage('bot', '…');
     try {
       const token = localStorage.getItem('token');
+      const conversationId = state.conversationId || '';
       const res = await fetch('/api/chatbot/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': 'Bearer ' + token } : {})
         },
-        body: JSON.stringify({ question: text })
+        body: JSON.stringify({ 
+          question: text,
+          conversation_id: conversationId
+        })
       });
+      if (!res.ok) {
+        console.error('API Error:', res.status, res.statusText);
+        state.messages[state.messages.length - 1] = { role: 'bot', content: `Error: ${res.status} ${res.statusText}` };
+        render();
+        return;
+      }
       const data = await res.json();
-      // replace last bot placeholder
-      state.messages[state.messages.length - 1] = { role: 'bot', content: data.answer || 'No answer' };
+      if (!data.success) {
+        console.error('API Response Error:', data.error);
+        state.messages[state.messages.length - 1] = { role: 'bot', content: data.error || 'API returned error' };
+        render();
+        return;
+      }
+      state.conversationId = data.conversation_id;
+      state.messages[state.messages.length - 1] = { role: 'bot', content: data.data?.answer || 'No answer' };
       render();
     } catch (e) {
-      state.messages[state.messages.length - 1] = { role: 'bot', content: 'Error contacting assistant.' };
+      console.error('Fetch error:', e);
+      state.messages[state.messages.length - 1] = { role: 'bot', content: 'Error: ' + e.message };
       render();
     }
   }
