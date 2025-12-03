@@ -202,9 +202,12 @@
                                     <li><a data-range="all">All Time</a></li>
                                 </ul>
                             </div>
-                            <!-- Export Dropdown (Right, moved to header area) -->
+                            <!-- Export Dropdown (Right, styled like screenshot) -->
                             <div class="dropdown dropdown-end">
-                                <label tabindex="0" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full">Export</label>
+                                <label tabindex="0" class="btn bg-white border border-gray-300 hover:border-viu-yellow text-gray-700 font-semibold rounded-full flex items-center gap-2">
+                                    <i data-lucide="share" class="w-4 h-4"></i>
+                                    Export
+                                </label>
                                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-box w-56">
                                     <li><a id="btn-export-csv">Export CSV (Excel)</a></li>
                                     <li><a id="btn-export-pdf">Export PDF</a></li>
@@ -228,6 +231,11 @@
                     <div class="dashboard-card lg:col-span-2"><h3 class="text-lg font-bold text-black mb-6">Average Ratings per Category</h3><div class="h-80 w-full"><canvas id="barChart"></canvas></div></div>
                     <div class="dashboard-card"><h3 class="text-lg font-bold text-black mb-6">Satisfaction Distribution</h3><div class="h-80 w-full flex justify-center"><canvas id="pieChart"></canvas></div></div>
                 </div>
+                <!-- Executive Insights Section (below charts) -->
+                <div class="dashboard-card mt-6">
+                    <h3 class="text-xl font-extrabold text-black mb-4">Executive Insights</h3>
+                    <div id="diagnosis-text" class="text-gray-800 text-sm leading-7"></div>
+                </div>
             </div>
 
             <!-- VIEW: SURVEY ANSWERS -->
@@ -242,12 +250,48 @@
                     <div class="w-full lg:w-48"><select id="adminServiceFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Services (All)</option><option value="movies">Movies</option><option value="kdrama">KDRAMA</option><option value="variety shows">Variety Shows</option><option value="anime">Anime</option><option value="thai drama">Thai Drama</option><option value="general">General</option></select></div>
                     <div class="w-full lg:w-48"><select id="adminCountryFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Country (All)</option><option value="Singapore">Singapore</option><option value="Philippines">Philippines</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Thailand">Thailand</option><option value="Hong Kong">Hong Kong</option></select></div>
                     <div class="w-full lg:w-48"><select id="adminRangeFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Date Range (All)</option><option value="7d">Last 7 Days</option><option value="30d">Last 30 Days</option></select></div>
+                    <!-- Answers Export Dropdown beside date range -->
+                    <div class="dropdown lg:self-stretch">
+                        <label tabindex="0" class="btn bg-white border border-gray-300 hover:border-viu-yellow text-gray-700 font-semibold rounded-full flex items-center gap-2 h-full min-h-0 px-4">
+                            <i data-lucide="share" class="w-4 h-4"></i>
+                            Export
+                        </label>
+                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-white rounded-box w-48">
+                            <li><a id="answers-export-csv">Export CSV</a></li>
+                            <li><a id="answers-export-pdf">Export PDF</a></li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="text-gray-600 font-medium mb-4" id="adminResultCount">0 Submissions found.</div>
                 <div class="text-xs text-gray-400 mb-2" id="data-source-badge" style="display:none;">Using local fallback data</div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <table class="w-full text-left border-collapse">
-                        <thead><tr class="custom-table-header h-14"><th class="pl-8 w-16">#</th><th class="w-1/5">User Location</th><th class="w-1/5">Service</th><th class="w-1/5">Email</th><th class="w-1/5">Date</th><th class="pr-8 text-right">Actions</th></tr></thead>
+                        <thead>
+                            <tr class="custom-table-header h-14">
+                                <th class="pl-8 w-16">#</th>
+                                <th class="w-1/5">
+                                    <div class="flex items-center gap-1">User Location
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-black" onclick="setAnswersSort('country')"><i data-lucide="chevrons-up-down" class="w-4 h-4"></i></button>
+                                    </div>
+                                </th>
+                                <th class="w-1/5">
+                                    <div class="flex items-center gap-1">Service
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-black" onclick="setAnswersSort('service')"><i data-lucide="chevrons-up-down" class="w-4 h-4"></i></button>
+                                    </div>
+                                </th>
+                                <th class="w-1/5">
+                                    <div class="flex items-center gap-1">Email
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-black" onclick="setAnswersSort('email')"><i data-lucide="chevrons-up-down" class="w-4 h-4"></i></button>
+                                    </div>
+                                </th>
+                                <th class="w-1/5">
+                                    <div class="flex items-center gap-1">Date
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-black" onclick="setAnswersSort('submitted_at')"><i data-lucide="chevrons-up-down" class="w-4 h-4"></i></button>
+                                    </div>
+                                </th>
+                                <th class="pr-8 text-right">Actions</th>
+                            </tr>
+                        </thead>
                         <tbody class="text-gray-700" id="adminAnswersTableBody">
                             <!-- JS will populate this -->
                         </tbody>
@@ -354,6 +398,49 @@
         let questions = [];
         let responses = [];
         let suggestions = [];
+        // Local aggregates built from responses as a fallback for charts/exports
+        let localQuestionStats = [];
+        // Helper: normalize a single ratings array to [{title, rating}]
+        function normalizeRatingsArr(ratingsRaw){
+            let ratings = Array.isArray(ratingsRaw) ? ratingsRaw.slice() : [];
+            // If single object contains multiple key-value pairs (map-like), explode into entries
+            if(ratings.length === 1 && typeof ratings[0] === 'object' && ratings[0] !== null){
+                const obj = ratings[0];
+                const keys = Object.keys(obj);
+                if(keys.length > 2){
+                    const expanded = [];
+                    keys.forEach((k, idx) => {
+                        const val = obj[k];
+                        const titleGuess = (questions[idx]?.title) || k || `Q${idx+1}`;
+                        expanded.push({ title: String(titleGuess), rating: Number(val||0) });
+                    });
+                    ratings = expanded;
+                }
+            }
+            // If primitives (numbers), align with stored questions by index
+            if(ratings.length && typeof ratings[0] !== 'object'){
+                return ratings.map((val, idx) => ({ title: (questions[idx]?.title)||(`Q${idx+1}`), rating: Number(val||0) }));
+            }
+            // If stdClass-like objects missing keys, convert via Object.values order
+            ratings = ratings.map((obj) => {
+                if(!obj) return null;
+                const hasTitle = Object.prototype.hasOwnProperty.call(obj,'title') || Object.prototype.hasOwnProperty.call(obj,'question');
+                const hasRating = Object.prototype.hasOwnProperty.call(obj,'rating') || Object.prototype.hasOwnProperty.call(obj,'value');
+                if(hasTitle && hasRating){
+                    return { title: (obj.title||obj.question||'Untitled').toString(), rating: Number(obj.rating||obj.value||0) };
+                }
+                const vals = Object.values(obj||{});
+                if(vals.length>=2){
+                    return { title: (vals[0]||'Untitled').toString(), rating: Number(vals[1]||0) };
+                }
+                return null;
+            }).filter(Boolean);
+            // If titles still Untitled or missing, align by index with known questions
+            if(ratings.length){
+                ratings = ratings.map((q, idx) => ({ title: (q.title && !['Untitled','Unknown','Question'].includes(q.title)) ? q.title : ((questions[idx]?.title)||(`Q${idx+1}`)), rating: Number(q.rating||0) }));
+            }
+            return ratings;
+        }
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', () => {
@@ -398,7 +485,7 @@
                         email: r.email || null,
                         submitted_at: r.submitted_at || r.created_at || r.date || null,
                         suggestion: r.suggestion || r.comment || null,
-                        ratings: r.ratings || []
+                        ratings: normalizeRatingsArr(r.ratings || [])
                     }));
                 } else {
                     // If GET fails with 405, try POST with method override header
@@ -423,7 +510,7 @@
                             email: r.email || null,
                             submitted_at: r.submitted_at || r.created_at || r.date || null,
                             suggestion: r.suggestion || r.comment || null,
-                            ratings: r.ratings || []
+                            ratings: normalizeRatingsArr(r.ratings || [])
                         }));
                     } else {
                     // Fallback to local submissions (from client side)
@@ -435,7 +522,7 @@
                         email: r.email || null,
                         submitted_at: r.submitted_at || null,
                         suggestion: r.suggestion || null,
-                        ratings: r.ratings || []
+                        ratings: normalizeRatingsArr(r.ratings || [])
                     }));
                     const msgEl = document.getElementById('adminResultCount');
                     const badgeEl = document.getElementById('data-source-badge');
@@ -450,6 +537,22 @@
                     country: r.country,
                     submitted_at: r.submitted_at
                 }));
+                // Build per-question stats from responses ratings as fallback
+                const qMap = new Map();
+                (responses||[]).forEach(r => {
+                    (r.ratings||[]).forEach(q => {
+                        const title = (q.title||q.question||'Untitled').toString();
+                        const rating = Number(q.rating||q.value||0);
+                        const finalTitle = (title && title!=='Untitled') ? title : ((questions[(q.index??-1)]?.title) || title);
+                        if(!qMap.has(finalTitle)) qMap.set(finalTitle, { sum:0, count:0 });
+                        if(rating>0){ const o=qMap.get(finalTitle); o.sum+=rating; o.count+=1; }
+                    });
+                });
+                localQuestionStats = Array.from(qMap.entries()).map(([title,o])=>({
+                    title,
+                    avg_rating: o.count ? (o.sum/o.count) : 0,
+                    ratings_count: o.count
+                })).sort((a,b)=>Number(b.avg_rating)-Number(a.avg_rating));
                 renderSurveyAnswersTable();
                 renderSuggestions();
                 updateDashboardStats();
@@ -571,16 +674,78 @@
             const avg = totalQuestions > 0 ? (totalScore / totalQuestions).toFixed(2) : '0.00';
             const dashAvg = document.getElementById('dash-avg');
             if(dashAvg) dashAvg.innerHTML = `${avg} <span class="text-2xl text-gray-400 font-semibold">/ 5.0</span>`;
+            // Build simple diagnosis
+            try {
+                const items = localQuestionStats && localQuestionStats.length ? localQuestionStats.slice() : [];
+                const topImproved = items.slice().sort((a,b)=>Number(b.avg_rating)-Number(a.avg_rating)).slice(0,3);
+                const topDeclined = items.slice().sort((a,b)=>Number(a.avg_rating)-Number(b.avg_rating)).slice(0,3);
+                const services = {};
+                (responses||[]).forEach(r => { const s=(r.service||'general').toString().toLowerCase(); services[s]=(services[s]||0)+1; });
+                const popularService = Object.entries(services).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'general';
+                const el = document.getElementById('diagnosis-text');
+                if(el){
+                    const highlights = topImproved.map(i=>i.title).join(', ') || '—';
+                    const focus = topDeclined.map(i=>i.title).join(', ') || '—';
+                    const total = responses.length;
+                    const avgTxt = document.getElementById('dash-avg')?.textContent?.split(' ')[0] || '0.0';
+                    el.innerHTML = `
+                        <p class="mb-3"><span class="font-semibold">Overview:</span> ${total} submissions recorded with an overall average rating of <span class="font-semibold">${avgTxt}</span>. The most engaged service is <span class="font-semibold capitalize">${popularService}</span>.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                            <div class="p-3 rounded-lg bg-[#F8FAFC] border border-gray-100">
+                                <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Strengths</div>
+                                <div class="text-sm">${highlights}</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-[#FFF7ED] border border-orange-100">
+                                <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Focus Areas</div>
+                                <div class="text-sm">${focus}</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-[#F0FDF4] border border-emerald-100">
+                                <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Key Actions</div>
+                                <div class="text-sm">Improve app performance and search; preserve content quality and subtitle accuracy.</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">Suggested next steps: benchmark streaming quality metrics, refine discovery flows (search and recommendations), and address value-for-money perceptions through content packaging and pricing communication.</p>
+                    `;
+                }
+            } catch(_) {}
         }
 
         // ==================== SURVEY ANSWERS LOGIC ====================
+        // Sorting state for Answers table
+        let answersSortColumn = null;
+        let answersSortDirection = 'asc';
+
+        function setAnswersSort(column){
+            if(answersSortColumn === column){
+                answersSortDirection = (answersSortDirection === 'asc') ? 'desc' : 'asc';
+            } else {
+                answersSortColumn = column;
+                answersSortDirection = 'asc';
+            }
+            renderSurveyAnswersTable();
+        }
+
+        function getSortedResponses(){
+            if(!answersSortColumn) return responses.slice();
+            const arr = responses.slice();
+            arr.sort((a,b) => {
+                const av = (a[answersSortColumn]||'').toString().toLowerCase();
+                const bv = (b[answersSortColumn]||'').toString().toLowerCase();
+                if(av < bv) return answersSortDirection==='asc' ? -1 : 1;
+                if(av > bv) return answersSortDirection==='asc' ? 1 : -1;
+                return 0;
+            });
+            return arr;
+        }
+
         function renderSurveyAnswersTable() {
             const tbody = document.getElementById('adminAnswersTableBody');
             tbody.innerHTML = '';
             
             document.getElementById('adminResultCount').innerText = `${responses.length} Submissions found.`;
 
-            responses.forEach((r, index) => {
+            const dataRows = getSortedResponses();
+            dataRows.forEach((r, index) => {
                 const row = document.createElement('tr');
                 row.className = 'custom-table-row h-16';
                 row.innerHTML = `
@@ -794,14 +959,16 @@
                 actionBtn.className = 'btn text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 px-4 py-2.5 shadow-sm hover:shadow-md';
                 
                 if(currentSuggestionsTab === 'active') {
-                    actionBtn.className += ' bg-emerald-500 hover:bg-emerald-600 text-white border-none';
-                    actionBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span>Mark as Resolved</span>';
+                    actionBtn.className += ' bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-full p-2';
+                    actionBtn.title = 'Mark as Resolved';
+                    actionBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i>';
                     actionBtn.addEventListener('click', () => {
                         window.archiveSuggestion(s.id);
                     });
                 } else {
-                    actionBtn.className += ' bg-gray-500 hover:bg-gray-600 text-white border-none';
-                    actionBtn.innerHTML = '<i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Restore</span>';
+                    actionBtn.className += ' bg-gray-500 hover:bg-gray-600 text-white border-none rounded-full p-2';
+                    actionBtn.title = 'Restore';
+                    actionBtn.innerHTML = '<i data-lucide="rotate-ccw" class="w-5 h-5"></i>';
                     actionBtn.addEventListener('click', () => {
                         window.unarchiveSuggestion(s.id);
                     });
@@ -901,14 +1068,71 @@
         }
 
         // ==================== CHARTS LOGIC ====================
-        function initCharts() {
+        let barChartInstance = null;
+        let pieChartInstance = null;
+
+        function renderChartsFromStats(stats){
             if(typeof Chart === 'undefined') return;
-            // Initialize dummy charts for visual completeness
+            const pastelPalette = ['#A7F3D0','#BFDBFE','#FDE68A','#FBCFE8','#C7D2FE','#FCA5A5','#DDD6FE','#99F6E4','#FDE68A','#C4B5FD'];
             const ctxBar = document.getElementById('barChart')?.getContext('2d');
-            if(ctxBar) new Chart(ctxBar, { type: 'bar', data: { labels: ['A', 'B'], datasets: [{ data: [3, 4], backgroundColor: '#FCD34D' }] } });
-            
             const ctxPie = document.getElementById('pieChart')?.getContext('2d');
-            if(ctxPie) new Chart(ctxPie, { type: 'pie', data: { labels: ['Sat', 'Unsat'], datasets: [{ data: [10, 5], backgroundColor: ['#F6BE00', '#9CA3AF'] }] } });
+
+            // Bar: Average Rating per Question
+            if(ctxBar){
+                let qStats = (stats?.questions||[]);
+                if(!qStats || qStats.length === 0){ qStats = localQuestionStats; }
+                let labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
+                let data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
+                // If labels are all unknown/untitled or a single repeated label, fallback to local aggregation
+                const uniqueLabels = Array.from(new Set(labels.map(l => (l||'Untitled').toString().trim())));
+                const allUnknown = uniqueLabels.length === 1 && ['Untitled','Unknown',''].includes(uniqueLabels[0]);
+                if(allUnknown || uniqueLabels.length === 1){
+                    qStats = localQuestionStats && localQuestionStats.length ? localQuestionStats : qStats;
+                    labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
+                    data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
+                    // If still single bar, seed labels from known questions with zeros to visualize structure
+                    const unique2 = Array.from(new Set(labels.map(l => (l||'Untitled').toString().trim())));
+                    if(unique2.length <= 1 && questions && questions.length){
+                        labels = questions.map(q => q.title);
+                        const avgMap = new Map(qStats.map(q => [q.title, Number(q.avg_rating||q.average||0)]));
+                        data = labels.map(t => avgMap.get(t) ?? 0);
+                    }
+                }
+                if(barChartInstance){ barChartInstance.destroy(); }
+                barChartInstance = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=>pastelPalette[i%pastelPalette.length]), borderWidth: 0 }] },
+                    options: { plugins: { legend: { display:false } }, scales: { y: { beginAtZero:true, max:5, grid:{ color:'#F3F4F6'} }, x:{ grid:{ display:false } } } }
+                });
+            }
+
+            // Pie: Overall distribution (if provided) else by services share
+            if(ctxPie){
+                let labels = [];
+                let data = [];
+                if(stats?.overall_distribution){
+                    labels = Object.keys(stats.overall_distribution.counts).map(k=>'Rating '+k);
+                    data = Object.values(stats.overall_distribution.counts);
+                } else if(stats?.services){
+                    labels = stats.services.map(s=>s.service);
+                    data = stats.services.map(s=>s.submissions);
+                } else {
+                    labels = ['N/A']; data = [1];
+                }
+                if(pieChartInstance){ pieChartInstance.destroy(); }
+                pieChartInstance = new Chart(ctxPie, {
+                    type: 'pie',
+                    data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=>pastelPalette[(i+5)%pastelPalette.length]), borderWidth: 0 }] },
+                    options: { plugins: { legend: { position:'bottom' } } }
+                });
+            }
+        }
+
+        function initCharts(){
+            // Fallback placeholders if stats not yet loaded
+            renderChartsFromStats({ questions: [
+                { title:'Content', avg_rating:3.2 }, { title:'Quality', avg_rating:4.1 }, { title:'Search', avg_rating:3.8 }, { title:'Subtitles', avg_rating:3.6 }, { title:'Performance', avg_rating:2.9 }, { title:'Value', avg_rating:4.0 }
+            ], services:[{service:'General', submissions:10},{service:'KDRAMA', submissions:6}] });
         }
 
         // ==================== SETTINGS SUBMIT ====================
@@ -965,6 +1189,10 @@
             const btnPdf = document.getElementById('btn-export-pdf');
             if (btnCsv) btnCsv.addEventListener('click', exportCSV);
             if (btnPdf) btnPdf.addEventListener('click', exportPDF);
+            const aCsv = document.getElementById('answers-export-csv');
+            const aPdf = document.getElementById('answers-export-pdf');
+            if (aCsv) aCsv.addEventListener('click', exportAnswersCSV);
+            if (aPdf) aPdf.addEventListener('click', exportAnswersPDF);
             loadStats();
         });
 
@@ -985,6 +1213,8 @@
                     const disp = (ov && ov.toFixed) ? ov.toFixed(2) : ov;
                     avg.innerHTML = disp + ' <span class="text-2xl text-gray-400 font-semibold">/ 5.0</span>';
                 }
+                // Update charts from stats
+                renderChartsFromStats(data);
             } catch(_){ /* keep defaults */ }
         }
 
@@ -1019,7 +1249,7 @@
                 if (res.ok) {
                     const data = await res.json();
                     // Compute extras: weighted average, contribution %, rank by avg
-                    const totalCount = data.questions.reduce((s,q)=>s+Number(q.ratings_count||0),0);
+                    const totalCount = (data.questions||[]).reduce((s,q)=>s+Number(q.ratings_count||q.count||0),0);
                     const rowsQ = data.questions
                         .map((q,i)=>({
                             title:q.title,
@@ -1075,43 +1305,7 @@
                     if(data.hourly_heatmap){
                         hourlyRows = [['Hour','Submissions','Avg Rating']].concat(data.hourly_heatmap.map(h => [h.hour, h.submissions, h.avg_rating]));
                     }
-                    if(data.movement){
-                        movementImprovedRows = [['Question','Δ Avg']].concat((data.movement.improved||[]).map(m => [m.title, m.diff]));
-                        movementDeclinedRows = [['Question','Δ Avg']].concat((data.movement.declined||[]).map(m => [m.title, m.diff]));
-                    }
-                    if(data.anomalies){
-                        anomalyRows = [['Date','Avg Rating','Deviation']].concat(data.anomalies.map(a => [a.date, a.avg_rating, a.deviation]));
-                    }
-                    if(data.engagement){
-                        engagementRows = [
-                            ['Completion Rate %', data.engagement.completion_rate_pct],
-                            ['Suggestion Rate %', data.engagement.suggestion_rate_pct],
-                            ['Satisfaction Index', data.engagement.satisfaction_index],
-                            ['Missing Country', data.engagement.data_quality.missing_country],
-                            ['Missing Service', data.engagement.data_quality.missing_service],
-                            ['Blank Email', data.engagement.data_quality.blank_email]
-                        ];
-                    }
-                    if(data.delta){
-                        engagementRows.push(['Avg Rating Change %', data.delta.avg_rating_change_pct===null?'NA':data.delta.avg_rating_change_pct]);
-                        engagementRows.push(['Submission Change %', data.delta.submission_change_pct===null?'NA':data.delta.submission_change_pct]);
-                    }
-                }
-            } catch(_) {}
-            const rows = [
-                ['Metric','Value'],
-                ['Total Submissions', total],
-                ['Average Rating', avg],
-                ['Report Generated At', new Date().toISOString()],
-                [],
-                ...questionRows,
-                [],['Countries Breakdown'],...countryRows,
-                [],['Services Breakdown'],...serviceRows,
-                [],['Daily Trends'],...trendRows,
-                [],['Overall Distribution'],...overallDistRows,
-                [],['Per-Question Distribution'],...questionDistRows,
-                [],['Country-Service Pivot'],...pivotRows,
-                [],['Service Affinity'],...affinityRows,
+                    // Omit Per-Question Distribution section to avoid blank output when data is sparse
                 [],['Email Domains'],...domainRows,
                 [],['Hourly Heatmap'],...hourlyRows,
                 [],['Top Improvers'],...movementImprovedRows,
@@ -1129,12 +1323,13 @@
         }
 
         async function exportPDF(){
-            // Create a print-friendly window containing key stats
+            // Create a print-friendly window containing key stats with VIU header
             const total = document.getElementById('dash-total')?.textContent?.trim() || '0';
             const avg = document.getElementById('dash-avg')?.textContent?.trim() || '0.0 / 5.0';
             const win = window.open('', 'printWin');
-            win.document.write('<html><head><title>VIU Dashboard Report</title><style>body{font-family:Inter,Arial,sans-serif;padding:24px}h1{font-size:24px;margin-bottom:16px}h2{font-size:18px;margin-top:32px;margin-bottom:12px}table{border-collapse:collapse;width:100%;margin-bottom:12px}td,th{border:1px solid #ddd;padding:8px;font-size:12px}th{background:#f5f5f5;text-align:left}</style></head><body>');
-            win.document.write('<h1>VIU Dashboard Report</h1>');
+            const viuLogo = '<svg width="32" height="32" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            win.document.write('<html><head><title>VIU Dashboard Report</title><style>body{font-family:Inter,Arial,sans-serif;padding:24px}h1{font-size:22px;margin:0 0 6px;display:flex;align-items:center;gap:10px}h2{margin:18px 0 10px;font-size:18px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ddd;padding:6px}th{background:#f5f5f5;text-align:left}.header{border-bottom:3px solid #F6BE00;padding-bottom:8px;margin-bottom:12px}</style></head><body>');
+            win.document.write('<div class="header"><h1>'+viuLogo+' VIU Dashboard Report</h1><div style="color:#6B7280;font-size:11px;">Generated '+ new Date().toLocaleString() +'</div></div>');
             win.document.write('<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>');
             win.document.write('<tr><td>Total Submissions</td><td>'+total+'</td></tr>');
             win.document.write('<tr><td>Average Rating</td><td>'+avg+'</td></tr>');
@@ -1149,10 +1344,43 @@
                 if (res.ok) {
                     const data = await res.json();
                     win.document.write('<h2>Per-Question Metrics</h2>');
-                    // Sort by avg desc; include share of responses
-                    const totalCount = data.questions.reduce((s,q)=>s+Number(q.ratings_count||0),0);
-                    const rowsQ = data.questions
-                        .map(q=>({title:q.title,avg:Number(q.avg_rating).toFixed(2),count:Number(q.ratings_count||0),pct: totalCount? ((Number(q.ratings_count||0)/totalCount)*100).toFixed(1)+'%':'0%'}))
+                    // Normalize titles and fallback to local aggregation when titles are unknown
+                    let questionsData = (data.questions||[]).map(q=>({
+                        title: (q.title||q.question_title||'Untitled'),
+                        avg: Number(q.avg_rating||q.average||0),
+                        count: Number(q.ratings_count||q.count||0)
+                    }));
+                    const qLabelsUnique = Array.from(new Set(questionsData.map(q=> (q.title||'Untitled').toString().trim())));
+                    const qAllUnknown = qLabelsUnique.length === 1 && ['Untitled','Unknown',''].includes(qLabelsUnique[0]);
+                    if(questionsData.length === 0 || qAllUnknown || qLabelsUnique.length === 1){
+                        // Use existing local aggregate if present
+                        let fallback = (localQuestionStats||[]).map(q=>({ title:q.title, avg:Number(q.avg_rating||0), count:Number(q.ratings_count||0) }));
+                        // If no local aggregate yet, fetch public responses and compute inline
+                        if(!fallback.length){
+                            try{
+                                let urlResp = '{{ url('/api/public/responses') }}';
+                                const rRes = await fetch(urlResp, { headers: { 'Accept':'application/json' }, method: 'GET' });
+                                if(rRes.ok){
+                                    const raw = await rRes.json();
+                                    const respArr = (Array.isArray(raw)? raw : (raw.responses||[]));
+                                    const qMap = new Map();
+                                    (respArr||[]).forEach(r => {
+                                        (r.ratings||[]).forEach(q => {
+                                            const title = (q.title||q.question||'Untitled').toString();
+                                            const rating = Number(q.rating||q.value||0);
+                                            if(!qMap.has(title)) qMap.set(title, { sum:0, count:0 });
+                                            if(rating>0){ const o=qMap.get(title); o.sum+=rating; o.count+=1; }
+                                        });
+                                    });
+                                    fallback = Array.from(qMap.entries()).map(([title,o])=>({ title, avg: o.count ? (o.sum/o.count) : 0, count: o.count }));
+                                }
+                            } catch(_){}
+                        }
+                        questionsData = fallback;
+                    }
+                    const totalCount = questionsData.reduce((s,q)=>s+Number(q.count||0),0);
+                    const rowsQ = questionsData
+                        .map(q=>({title:q.title,avg:q.avg.toFixed(2),count:q.count,pct: totalCount? ((Number(q.count||0)/totalCount)*100).toFixed(1)+'%':'0%'}))
                         .sort((a,b)=>Number(b.avg)-Number(a.avg));
                     win.document.write('<table><thead><tr><th>Question</th><th>Avg Rating</th><th>Responses</th><th>Share</th></tr></thead><tbody>');
                     rowsQ.forEach(r => {
@@ -1188,8 +1416,40 @@
                     }
                     if(data.question_stats){
                         win.document.write('<h2>Per-Question Distribution</h2><table><thead><tr><th>Question</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th><th>Median</th><th>StdDev</th><th>P25</th><th>P50</th><th>P75</th></tr></thead><tbody>');
-                        data.questions.forEach(q => { const qs = data.question_stats[q.question_id]; if(!qs) return; win.document.write('<tr><td>'+q.title+'</td><td>'+qs.counts[1]+'</td><td>'+qs.counts[2]+'</td><td>'+qs.counts[3]+'</td><td>'+qs.counts[4]+'</td><td>'+qs.counts[5]+'</td><td>'+ (qs.median??'') +'</td><td>'+ (qs.std_dev?Number(qs.std_dev).toFixed(2):'0.00') +'</td><td>'+ (qs.p25??'') +'</td><td>'+ (qs.p50??'') +'</td><td>'+ (qs.p75??'') +'</td></tr>'); });
+                        data.questions.forEach(q => { const qs = data.question_stats[q.question_id]; if(!qs) return; win.document.write('<tr><td>'+ (q.title||q.question_title||'Untitled') +'</td><td>'+ (qs.counts?.[1]??0) +'</td><td>'+ (qs.counts?.[2]??0) +'</td><td>'+ (qs.counts?.[3]??0) +'</td><td>'+ (qs.counts?.[4]??0) +'</td><td>'+ (qs.counts?.[5]??0) +'</td><td>'+ (qs.median??'') +'</td><td>'+ (qs.std_dev?Number(qs.std_dev).toFixed(2):'0.00') +'</td><td>'+ (qs.p25??'') +'</td><td>'+ (qs.p50??'') +'</td><td>'+ (qs.p75??'') +'</td></tr>'); });
                         win.document.write('</tbody></table>');
+                    } else {
+                        // Local fallback: build per-question distribution from responses (fetch if needed)
+                        const distMap = new Map();
+                        let localResp = responses;
+                        try{
+                            if(!localResp || !localResp.length){
+                                let urlResp = '{{ url('/api/public/responses') }}';
+                                const rRes = await fetch(urlResp, { headers: { 'Accept':'application/json' }, method: 'GET' });
+                                if(rRes.ok){
+                                    const raw = await rRes.json();
+                                    localResp = (Array.isArray(raw)? raw : (raw.responses||[]));
+                                }
+                            }
+                        } catch(_){}
+                        (localResp||[]).forEach(r => {
+                            const norm = normalizeRatingsArr(r.ratings||[]);
+                            (norm||[]).forEach(q => {
+                                const title = (q.title||q.question||'Untitled').toString();
+                                const rating = Number(q.rating||q.value||0);
+                                if(!distMap.has(title)) distMap.set(title, { counts: {1:0,2:0,3:0,4:0,5:0} });
+                                if(rating>=1 && rating<=5){ distMap.get(title).counts[rating]++; }
+                            });
+                        });
+                        const entries = Array.from(distMap.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
+                        if(entries.length){
+                            win.document.write('<h2>Per-Question Distribution</h2><table><thead><tr><th>Question</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th></tr></thead><tbody>');
+                            entries.forEach(([title,obj]) => {
+                                const c = obj.counts;
+                                win.document.write('<tr><td>'+title+'</td><td>'+c[1]+'</td><td>'+c[2]+'</td><td>'+c[3]+'</td><td>'+c[4]+'</td><td>'+c[5]+'</td></tr>');
+                            });
+                            win.document.write('</tbody></table>');
+                        }
                     }
                     if(data.country_service_pivot){
                         win.document.write('<h2>Country-Service Pivot</h2><table><thead><tr><th>Country</th><th>Service</th><th>Submissions</th></tr></thead><tbody>');
@@ -1211,13 +1471,19 @@
                         data.hourly_heatmap.forEach(h => { win.document.write('<tr><td>'+h.hour+'</td><td>'+h.submissions+'</td><td>'+h.avg_rating+'</td></tr>'); });
                         win.document.write('</tbody></table>');
                     }
-                    if(data.movement){
-                        win.document.write('<h2>Top Improvers</h2><table><thead><tr><th>Question</th><th>Δ Avg</th></tr></thead><tbody>');
-                        (data.movement.improved||[]).forEach(m => { win.document.write('<tr><td>'+m.title+'</td><td>'+m.diff+'</td></tr>'); });
-                        win.document.write('</tbody></table>');
-                        win.document.write('<h2>Top Decliners</h2><table><thead><tr><th>Question</th><th>Δ Avg</th></tr></thead><tbody>');
-                        (data.movement.declined||[]).forEach(m => { win.document.write('<tr><td>'+m.title+'</td><td>'+m.diff+'</td></tr>'); });
-                        win.document.write('</tbody></table>');
+                    // Top Performing / Lowest Performing Areas (fallback if movement missing)
+                    {
+                        const items = (localQuestionStats||[]).slice();
+                        if(items.length){
+                            const improved = items.slice().sort((a,b)=>Number(b.avg_rating)-Number(a.avg_rating)).slice(0,3);
+                            const declined = items.slice().sort((a,b)=>Number(a.avg_rating)-Number(b.avg_rating)).slice(0,3);
+                            win.document.write('<h2>Top Performing Areas</h2><table><thead><tr><th>Question</th><th>Avg Rating</th></tr></thead><tbody>');
+                            improved.forEach(i=>{ win.document.write('<tr><td>'+i.title+'</td><td>'+Number(i.avg_rating).toFixed(2)+'</td></tr>'); });
+                            win.document.write('</tbody></table>');
+                            win.document.write('<h2>Lowest Performing Areas</h2><table><thead><tr><th>Question</th><th>Avg Rating</th></tr></thead><tbody>');
+                            declined.forEach(i=>{ win.document.write('<tr><td>'+i.title+'</td><td>'+Number(i.avg_rating).toFixed(2)+'</td></tr>'); });
+                            win.document.write('</tbody></table>');
+                        }
                     }
                     if(data.anomalies){
                         win.document.write('<h2>Anomaly Days</h2><table><thead><tr><th>Date</th><th>Avg Rating</th><th>Deviation</th></tr></thead><tbody>');
@@ -1233,6 +1499,51 @@
                         win.document.write('<tr><td>Missing Service</td><td>'+data.engagement.data_quality.missing_service+'</td></tr>');
                         win.document.write('<tr><td>Blank Email</td><td>'+data.engagement.data_quality.blank_email+'</td></tr>');
                         if(data.delta){
+                    // Top Improvers / Decliners (local fallback using localQuestionStats when backend movement missing)
+                    try {
+                        const items = (localQuestionStats||[]).slice();
+                        if(items.length){
+                            const improved = items.slice().sort((a,b)=>Number(b.avg_rating)-Number(a.avg_rating)).slice(0,3);
+                            const declined = items.slice().sort((a,b)=>Number(a.avg_rating)-Number(b.avg_rating)).slice(0,3);
+                            win.document.write('<h2>Top Improvers</h2><table><thead><tr><th>Question</th><th>Δ Avg</th></tr></thead><tbody>');
+                            improved.forEach(i=>{ win.document.write('<tr><td>'+i.title+'</td><td>'+Number(i.avg_rating).toFixed(2)+'</td></tr>'); });
+                            win.document.write('</tbody></table>');
+                            win.document.write('<h2>Top Decliners</h2><table><thead><tr><th>Question</th><th>Δ Avg</th></tr></thead><tbody>');
+                            declined.forEach(i=>{ win.document.write('<tr><td>'+i.title+'</td><td>'+Number(i.avg_rating).toFixed(2)+'</td></tr>'); });
+                            win.document.write('</tbody></table>');
+                        }
+                    } catch(_) {}
+                    // Anomaly Days (heuristic: highlight days with avg rating < 3)
+                    try {
+                        const byDay = new Map();
+                        (responses||[]).forEach(r => {
+                            const d = (r.submitted_at||r.date||'').toString().split('T')[0]; if(!d) return;
+                            if(!byDay.has(d)) byDay.set(d, { sum:0, count:0 });
+                            (r.ratings||[]).forEach(q => { const v=Number(q.rating||0); if(v>0){ const o=byDay.get(d); o.sum+=v; o.count++; } });
+                        });
+                        const entries = Array.from(byDay.entries()).map(([day,o])=>({ day, avg: o.count? (o.sum/o.count) : 0 }));
+                        const anomalies = entries.filter(e=>e.avg<3);
+                        if(anomalies.length){
+                            win.document.write('<h2>Anomaly Days</h2><table><thead><tr><th>Date</th><th>Avg Rating</th><th>Deviation</th></tr></thead><tbody>');
+                            anomalies.forEach(a => { win.document.write('<tr><td>'+a.day+'</td><td>'+a.avg.toFixed(2)+'</td><td>'+ (5-a.avg).toFixed(2) +'</td></tr>'); });
+                            win.document.write('</tbody></table>');
+                        }
+                    } catch(_) {}
+                    // Executive Insights narrative
+                    try {
+                        const items = localQuestionStats && localQuestionStats.length ? localQuestionStats.slice() : [];
+                        const topImproved = items.slice().sort((a,b)=>Number(b.avg_rating)-Number(a.avg_rating)).slice(0,3);
+                        const topDeclined = items.slice().sort((a,b)=>Number(a.avg_rating)-Number(b.avg_rating)).slice(0,3);
+                        const services = {};
+                        (responses||[]).forEach(r => { const s=(r.service||'general').toString().toLowerCase(); services[s]=(services[s]||0)+1; });
+                        const popularService = Object.entries(services).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'general';
+                        const diagParts = [];
+                        if(topImproved.length){ diagParts.push('Strengths: '+topImproved.map(i=>i.title).join(', ')+'.'); }
+                        if(topDeclined.length){ diagParts.push('Focus Areas: '+topDeclined.map(i=>i.title).join(', ')+'.'); }
+                        diagParts.push('Engagement: '+responses.length+' submissions; most engaged service: '+popularService+'.');
+                        diagParts.push('Recommendations: Prioritize app performance and discoverability; preserve content quality and subtitle accuracy.');
+                        win.document.write('<h2>Executive Insights</h2><div style="font-size:12px;color:#374151;line-height:1.6;">'+diagParts.join(' ')+'</div>');
+                    } catch(_) {}
                             win.document.write('<tr><td>Avg Rating Change %</td><td>'+(data.delta.avg_rating_change_pct===null?'NA':data.delta.avg_rating_change_pct)+'</td></tr>');
                             win.document.write('<tr><td>Submission Change %</td><td>'+(data.delta.submission_change_pct===null?'NA':data.delta.submission_change_pct)+'</td></tr>');
                         }
@@ -1246,6 +1557,127 @@
             win.print();
             win.close();
             showToast('success', 'Exported PDF successfully');
+        }
+
+        // ==================== ANSWERS EXPORTS ====================
+        async function exportAnswersCSV(){
+            const header = ['#','User Location','Service','Email','Date'];
+            const rows = [header];
+            (responses||[]).forEach((r,i)=>{
+                rows.push([
+                    i+1,
+                    r.country||'',
+                    (r.service||'').toString().toLowerCase(),
+                    r.email||'',
+                    (r.submitted_at||r.date||'').toString().split('T')[0]
+                ]);
+            });
+
+            // Append dashboard analytics (same sections as Dashboard export)
+            try {
+                const token = localStorage.getItem('auth_token');
+                const range = window.selectedRange || 'all';
+                let urlStats = '{{ url('/api/admin/stats') }}';
+                if(range && range !== 'all') urlStats += ('?range='+range);
+                const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const total = Number(data.total_submissions||0)||0;
+
+                    // Questions summary
+                    const totalCount = data.questions.reduce((s,q)=>s+Number(q.ratings_count||0),0);
+                    rows.push([]); rows.push(['Questions Summary']);
+                    rows.push(['Question','Avg Rating','Responses','Share']);
+                    (data.questions||[])
+                        .map(q=>({title:(q.title||q.question_title||'Untitled'),avg:Number(q.avg_rating||q.average||0).toFixed(2),count:Number(q.ratings_count||q.count||0)}))
+                        .sort((a,b)=>Number(b.avg)-Number(a.avg))
+                        .forEach(q=>rows.push([q.title,q.avg,q.count,totalCount?((q.count/totalCount)*100).toFixed(1)+'%':'0%']));
+
+                    // Countries
+                    rows.push([]); rows.push(['Country Breakdown']);
+                    rows.push(['Country','Submissions','Share']);
+                    (data.countries||[]).forEach(c=>rows.push([c.country,c.submissions,total?((c.submissions/total)*100).toFixed(1)+'%':'0%']));
+
+                    // Services
+                    rows.push([]); rows.push(['Service Breakdown']);
+                    rows.push(['Service','Submissions','Share']);
+                    (data.services||[]).forEach(s=>rows.push([s.service,s.submissions,total?((s.submissions/total)*100).toFixed(1)+'%':'0%']));
+
+                    // Trends
+                    rows.push([]); rows.push(['Daily Trends']);
+                    rows.push(['Date','Submissions','Avg Rating']);
+                    (data.trends||[]).forEach(t=>rows.push([t.date,t.submissions,Number(t.avg_rating).toFixed(2)]));
+                }
+            } catch(_){}
+
+            const csv = rows.map(r => r.map(x => '"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'viu-survey-answers.csv'; a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'Exported Survey Answers CSV');
+        }
+
+        async function exportAnswersPDF(){
+            const win = window.open('', 'answersPdf');
+            const viuLogo = '<svg width="32" height="32" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            win.document.write('<html><head><title>Survey Answers</title><style>body{font-family:Inter,Arial,sans-serif;padding:24px}h1{font-size:22px;margin:0 0 6px;display:flex;align-items:center;gap:10px}h2{margin:18px 0 10px;font-size:18px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ddd;padding:6px}th{background:#f5f5f5;text-align:left} .header{border-bottom:3px solid #F6BE00;padding-bottom:8px;margin-bottom:12px}</style></head><body>');
+            win.document.write('<div class="header"><h1>'+viuLogo+' VIU Survey Report</h1><div style="color:#6B7280;font-size:11px;">Generated '+ new Date().toLocaleString() +'</div></div>');
+            win.document.write('<h2>Survey Answers</h2>');
+            win.document.write('<table><thead><tr><th>#</th><th>User Location</th><th>Service</th><th>Email</th><th>Date</th></tr></thead><tbody>');
+            (responses||[]).forEach((r,i)=>{
+                win.document.write('<tr><td>'+ (i+1) +'</td><td>'+ (r.country||'') +'</td><td>'+ ((r.service||'').toString().toLowerCase()) +'</td><td>'+ (r.email||'') +'</td><td>'+ ((r.submitted_at||r.date||'').toString().split('T')[0]) +'</td></tr>');
+            });
+            win.document.write('</tbody></table>');
+
+            // Append dashboard sections
+            try{
+                const token = localStorage.getItem('auth_token');
+                const range = window.selectedRange || 'all';
+                let urlStats = '{{ url('/api/admin/stats') }}';
+                if(range && range !== 'all') urlStats += ('?range='+range);
+                const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
+                if(res.ok){
+                    const data = await res.json();
+                    const total = Number(data.total_submissions||0)||0;
+                    win.document.write('<h2>Questions Summary</h2>');
+                    let questionsData = (data.questions||[]).map(q=>({
+                        title:(q.title||q.question_title||'Untitled'),
+                        avg:Number(q.avg_rating||q.average||0),
+                        count:Number(q.ratings_count||q.count||0)
+                    }));
+                    const qLabelsUnique = Array.from(new Set(questionsData.map(q=> (q.title||'Untitled').toString().trim())));
+                    const qAllUnknown = qLabelsUnique.length === 1 && ['Untitled','Unknown',''].includes(qLabelsUnique[0]);
+                    if(questionsData.length === 0 || qAllUnknown || qLabelsUnique.length === 1){
+                        questionsData = (localQuestionStats||[]).map(q=>({ title:q.title, avg:Number(q.avg_rating||0), count:Number(q.ratings_count||0) }));
+                    }
+                    const totalCount = questionsData.reduce((s,q)=>s+Number(q.count||0),0);
+                    win.document.write('<table><thead><tr><th>Question</th><th>Avg</th><th>Responses</th><th>Share</th></tr></thead><tbody>');
+                    questionsData
+                        .map(q=>({ title:q.title, avg:q.avg.toFixed(2), count:q.count }))
+                        .sort((a,b)=>Number(b.avg)-Number(a.avg))
+                        .forEach(q=>{ win.document.write('<tr><td>'+q.title+'</td><td>'+q.avg+'</td><td>'+q.count+'</td><td>'+ (totalCount?((q.count/totalCount)*100).toFixed(1)+'%':'0%') +'</td></tr>'); });
+                    win.document.write('</tbody></table>');
+
+                    win.document.write('<h2>Country Breakdown</h2><table><thead><tr><th>Country</th><th>Submissions</th><th>Share</th></tr></thead><tbody>');
+                    (data.countries||[]).forEach(c=>{ win.document.write('<tr><td>'+c.country+'</td><td>'+c.submissions+'</td><td>'+ (total?((c.submissions/total)*100).toFixed(1)+'%':'0%') +'</td></tr>'); });
+                    win.document.write('</tbody></table>');
+
+                    win.document.write('<h2>Service Breakdown</h2><table><thead><tr><th>Service</th><th>Submissions</th><th>Share</th></tr></thead><tbody>');
+                    (data.services||[]).forEach(s=>{ win.document.write('<tr><td>'+s.service+'</td><td>'+s.submissions+'</td><td>'+ (total?((s.submissions/total)*100).toFixed(1)+'%':'0%') +'</td></tr>'); });
+                    win.document.write('</tbody></table>');
+
+                    win.document.write('<h2>Daily Trends</h2><table><thead><tr><th>Date</th><th>Submissions</th><th>Avg Rating</th></tr></thead><tbody>');
+                    (data.trends||[]).forEach(t=>{ win.document.write('<tr><td>'+t.date+'</td><td>'+t.submissions+'</td><td>'+Number(t.avg_rating).toFixed(2)+'</td></tr>'); });
+                    win.document.write('</tbody></table>');
+                }
+            } catch(_) {}
+
+            win.document.write('</body></html>');
+            win.document.close();
+            win.focus();
+            showToast('success', 'Prepared Survey Answers PDF');
         }
         // Range selection interaction
         window.selectedRange = 'all';

@@ -39,7 +39,7 @@ class ChatbotController extends Controller
         $question = htmlspecialchars($question, ENT_QUOTES, 'UTF-8');
         
         // Profanity filter
-        $profanities = ['putang', 'gago', 'tangina', 'fuck', 'shit', 'bitch', 'asshole'];
+        $profanities = ['putang', 'gago', 'tangina', 'fuck', 'shit', 'bitch', 'asshole', 'tite','inamo', 'putanginamo', 'tanginamo'];
         $lowerQuestion = strtolower($question);
         foreach ($profanities as $word) {
             if (stripos($lowerQuestion, $word) !== false) {
