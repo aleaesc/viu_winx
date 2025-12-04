@@ -42,7 +42,9 @@ class PublicSurveyResponseController extends Controller
             return [
                 'id' => $r->id,
                 'country' => $r->country,
+                'name' => $r->name,
                 'service' => $r->service,
+                'services' => $r->services,
                 'email' => $r->email,
                 'submitted_at' => $r->submitted_at,
                 'ratings' => $ratings,
@@ -57,7 +59,10 @@ class PublicSurveyResponseController extends Controller
         $data = $request->validate([
             'country' => ['nullable','string','max:100'],
             'email' => ['nullable','email','max:150'],
+            'name' => ['nullable','string','max:150'],
             'service' => ['nullable','string','max:100'],
+            'services' => ['nullable','array'],
+            'services.*' => ['string','max:100'],
             'ratings' => ['required','array'],
             'ratings.*.title' => ['required','string','max:200'],
             'ratings.*.question_id' => ['nullable','integer'],

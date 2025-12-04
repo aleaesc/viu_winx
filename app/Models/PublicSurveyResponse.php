@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class PublicSurveyResponse extends Model
 {
-    protected $fillable = ['country','email','service','submitted_at','ratings','suggestion'];
-    protected $casts = [ 'ratings' => 'array', 'submitted_at' => 'datetime' ];
+    protected $fillable = ['country','email','name','service','services','submitted_at','ratings','suggestion'];
+    protected $casts = [ 'ratings' => 'array', 'services' => 'array', 'submitted_at' => 'datetime' ];
 }

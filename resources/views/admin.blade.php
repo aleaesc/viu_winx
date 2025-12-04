@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIU Super Admin Portal</title>
+    <title>VIU Admin Portal</title>
     
     <!-- Tailwind CSS & DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -41,10 +41,9 @@
         if(viewEl) viewEl.classList.remove('hidden-page');
         
         if(tabName === 'settings') {
-            const u = localStorage.getItem('superadmin_username');
+            const u = localStorage.getItem('admin_username');
             const usernameInput = document.getElementById('new-username');
             if(u && usernameInput) usernameInput.value = u;
-            if(typeof loadAdminAccounts === 'function') loadAdminAccounts();
         }
         if(tabName === 'answers' || tabName === 'suggestions') {
             if(typeof fetchSuperAdminData === 'function') {
@@ -74,12 +73,12 @@
                 return;
             }
             localStorage.setItem('auth_token', data.token);
-            localStorage.setItem('superadmin_username', username);
+            localStorage.setItem('admin_username', username);
             
-            // Check if user is NOT superadmin and redirect to admin
+            // Check if user is superadmin and redirect
             const userRole = data.user?.role || '';
-            if(userRole !== 'superadmin') {
-                window.location.href = '{{ url('/admin') }}';
+            if(userRole === 'superadmin') {
+                window.location.href = '{{ url('/superadmin') }}';
                 return;
             }
             
@@ -303,95 +302,24 @@
         </div>
     </div>
 
-    <!-- ==================== 5. ADD ADMIN MODAL ==================== -->
-    <div id="add-admin-modal" class="overlay-container hidden-page">
-        <div class="white-card w-full max-w-md p-8 md:p-10 relative fade-in">
-            <h2 class="text-2xl font-extrabold text-center mb-8 text-black">Add New Admin</h2>
-            
-            <form class="flex flex-col gap-5 mb-6" onsubmit="event.preventDefault(); submitAddAdmin();">
-                <div class="form-control w-full">
-                    <label class="label-small">Username</label>
-                    <input type="text" id="add-admin-username" placeholder="Enter username" class="input-underline" required />
-                </div>
-                <div class="form-control w-full">
-                    <label class="label-small">Password</label>
-                    <input type="password" id="add-admin-password" placeholder="Enter password (min 6 characters)" class="input-underline" required />
-                </div>
-                <div class="form-control w-full">
-                    <label class="label-small">Confirm Password</label>
-                    <input type="password" id="add-admin-confirm-password" placeholder="Confirm password" class="input-underline" required />
-                </div>
-
-                <div class="text-center flex flex-col gap-3 mt-2">
-                    <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full">Create Admin</button>
-                    <button type="button" onclick="closeAddAdminModal()" class="btn btn-ghost text-gray-500 font-bold text-xs tracking-widest uppercase">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ==================== 6. EDIT ADMIN MODAL ==================== -->
-    <div id="edit-admin-modal" class="overlay-container hidden-page">
-        <div class="white-card w-full max-w-md p-8 md:p-10 relative fade-in">
-            <h2 class="text-2xl font-extrabold text-center mb-8 text-black">Edit Admin Account</h2>
-            <input type="hidden" id="edit-admin-id" value="" />
-            
-            <form class="flex flex-col gap-5 mb-6" onsubmit="event.preventDefault(); submitEditAdmin();">
-                <div class="form-control w-full">
-                    <label class="label-small">Username</label>
-                    <input type="text" id="edit-admin-username" placeholder="Enter username" class="input-underline" required />
-                </div>
-                <div class="form-control w-full">
-                    <label class="label-small">New Password (leave empty to keep current)</label>
-                    <input type="password" id="edit-admin-password" placeholder="Enter new password" class="input-underline" />
-                </div>
-                <div class="form-control w-full">
-                    <label class="label-small">Confirm New Password</label>
-                    <input type="password" id="edit-admin-confirm-password" placeholder="Confirm new password" class="input-underline" />
-                </div>
-
-                <div class="text-center flex flex-col gap-3 mt-2">
-                    <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full">Update Admin</button>
-                    <button type="button" onclick="closeEditAdminModal()" class="btn btn-ghost text-gray-500 font-bold text-xs tracking-widest uppercase">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ==================== 7. DELETE ADMIN CONFIRMATION MODAL ==================== -->
-    <div id="delete-admin-modal" class="overlay-container hidden-page">
-        <div class="white-card w-full max-w-md p-8 md:p-10 relative fade-in">
-            <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-                    <i data-lucide="user-x" class="w-8 h-8 text-red-600"></i>
-                </div>
-            </div>
-            <h2 class="text-2xl font-extrabold text-center mb-4 text-black">Delete Admin Account</h2>
-            <p class="text-gray-600 text-center mb-2" id="delete-admin-message">Are you sure you want to delete this admin account?</p>
-            <p class="text-gray-500 text-sm text-center mb-8">This action cannot be undone. The admin will lose access immediately.</p>
-            <div class="flex gap-3">
-                <button onclick="closeDeleteAdminModal()" class="btn flex-1 bg-gray-200 hover:bg-gray-300 border-none text-gray-700 font-bold rounded-full">Cancel</button>
-                <button id="confirm-delete-admin-btn" class="btn flex-1 bg-red-500 hover:bg-red-600 border-none text-white font-bold rounded-full">Delete Admin</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 8. MAIN APP DASHBOARD ==================== -->
+    <!-- ==================== 5. MAIN APP DASHBOARD ==================== -->
     <div id="app-container" class="flex h-full hidden-page">
         
         <!-- SIDEBAR -->
         <aside class="w-64 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm z-20">
             <div class="p-8 pb-8 flex flex-col items-center">
                 <div class="flex flex-col items-center">
+                    <div class="mb-2">
+                        <svg width="50" height="50" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#F6BE00" stroke-width="8"/><path d="M40 30 L65 50 L40 70" stroke="#F6BE00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
                     <h1 class="text-4xl font-black tracking-tight text-viu-yellow leading-none">viu</h1>
-                    <span class="text-black font-bold tracking-widest text-sm mt-1">SUPER ADMIN</span>
+                    <span class="text-black font-bold tracking-widest text-sm mt-1">ADMIN</span>
                 </div>
             </div>
             <nav class="flex-1 px-4 overflow-y-auto">
                 <div onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-link active"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</div>
                 <div onclick="switchTab('answers')" id="nav-answers" class="sidebar-link"><i data-lucide="list-checks" class="w-5 h-5"></i> Survey Answers</div>
                 <div onclick="switchTab('suggestions')" id="nav-suggestions" class="sidebar-link"><i data-lucide="message-square-text" class="w-5 h-5"></i> Suggestions</div>
-                <div onclick="switchTab('edit')" id="nav-edit" class="sidebar-link"><i data-lucide="file-edit" class="w-5 h-5"></i> Edit Questions</div>
             </nav>
             <div class="p-4 border-t border-gray-100">
                 <div onclick="switchTab('settings')" id="nav-settings" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5"></i> Settings</div>
@@ -535,20 +463,6 @@
                 </div>
             </div>
 
-            <!-- VIEW: EDIT QUESTIONS -->
-            <div id="view-edit" class="hidden-page fade-in">
-                <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">Edit Survey Questions</h2></header>
-                
-                <button class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full mb-8 px-6 flex items-center gap-2" onclick="openAddQuestionModal()">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Add New Question
-                </button>
-
-                <!-- Questions List -->
-                <div class="flex flex-col gap-4" id="questions-list-container">
-                    <!-- JS will populate this -->
-                </div>
-            </div>
-
             <!-- VIEW: SETTINGS -->
             <div id="view-settings" class="hidden-page fade-in">
                 <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">Settings</h2></header>
@@ -587,32 +501,6 @@
                         </div>
                         <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full mt-2">Update Password</button>
                     </form>
-                </div>
-
-                <!-- Manage Admin Accounts Section -->
-                <div class="dashboard-card">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-black">Manage Admin Accounts</h3>
-                        <button onclick="openAddAdminModal()" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full px-6">
-                            <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>Add Admin
-                        </button>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="custom-table-header">
-                                    <th class="text-left p-4">Username</th>
-                                    <th class="text-left p-4">Role</th>
-                                    <th class="text-left p-4">Created</th>
-                                    <th class="text-center p-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-accounts-list" class="text-gray-700">
-                                <!-- JS will populate this -->
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
@@ -739,7 +627,6 @@
                     responses = (Array.isArray(data)? data : (data.responses||[])).map(r => ({
                         id: r.id || r.response_id || r.uuid || null,
                         country: r.country || r.location || 'Unknown',
-                        // Support multiple services voted
                         services: Array.isArray(r.services) ? r.services : (Array.isArray(r.genres) ? r.genres : null),
                         service: r.service || r.service_clicked || r.genre || (Array.isArray(r.genres)? r.genres[0] : 'general'),
                         name: r.name || r.user_name || null,
@@ -980,7 +867,6 @@
                     <td>${(r.submitted_at || r.date || '').toString().split('T')[0]}</td>
                     <td class="pr-8 text-right"><div class="flex justify-end gap-2">
                         <button onclick="openSubmissionModal(${index})" class="btn bg-white border border-gray-300 hover:border-viu-yellow text-gray-800 btn-sm px-4 rounded-md"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                        <button onclick="deleteResponse('${r.id || ''}', ${index})" class="btn bg-red-500 hover:bg-red-600 border-none text-white btn-sm px-4 rounded-md"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div></td>
                 `;
                 tbody.appendChild(row);
@@ -1238,6 +1124,7 @@
         // ==================== EDIT QUESTIONS LOGIC ====================
         function renderQuestionsList() {
             const container = document.getElementById('questions-list-container');
+            if(!container) return;
             container.innerHTML = '';
             questions.forEach((q, index) => {
                 const div = document.createElement('div');
@@ -1412,7 +1299,7 @@
                     return;
                 }
                 showToast('success', 'Username updated successfully!');
-                localStorage.setItem('superadmin_username', newUsername);
+                localStorage.setItem('admin_username', newUsername);
                 document.getElementById('username-current-password').value = '';
                 document.getElementById('new-username').value = newUsername;
             } catch(e) {
@@ -1479,241 +1366,9 @@
             }
         }
 
-        // ==================== ADMIN ACCOUNT MANAGEMENT ====================
-        let adminAccounts = [];
-
-        async function loadAdminAccounts() {
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if(!token) return;
-
-            try {
-                const res = await fetch('{{ url('/api/superadmin/admins') }}', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                if(res.ok) {
-                    adminAccounts = await res.json();
-                    renderAdminAccountsList();
-                }
-            } catch(e) {
-                console.error('Failed to load admin accounts:', e);
-            }
-        }
-
-        function renderAdminAccountsList() {
-            const tbody = document.getElementById('admin-accounts-list');
-            if(!tbody) return;
-
-            if(adminAccounts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-gray-400">No admin accounts yet. Click "Add Admin" to create one.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = adminAccounts.map(admin => `
-                <tr class="custom-table-row">
-                    <td class="p-4 font-semibold">${admin.username}</td>
-                    <td class="p-4"><span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Admin</span></td>
-                    <td class="p-4 text-sm text-gray-500">${admin.created_at ? new Date(admin.created_at).toLocaleDateString() : 'N/A'}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="openEditAdminModal(${admin.id})" class="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none rounded-lg mr-2">
-                            <i data-lucide="edit-2" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="openDeleteAdminModal(${admin.id})" class="btn btn-sm bg-red-500 hover:bg-red-600 text-white border-none rounded-lg">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-
-            // Re-initialize lucide icons
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function openAddAdminModal() {
-            document.getElementById('add-admin-username').value = '';
-            document.getElementById('add-admin-password').value = '';
-            document.getElementById('add-admin-confirm-password').value = '';
-            document.getElementById('add-admin-modal').classList.remove('hidden-page');
-        }
-
-        function closeAddAdminModal() {
-            document.getElementById('add-admin-modal').classList.add('hidden-page');
-        }
-
-        async function submitAddAdmin() {
-            const username = document.getElementById('add-admin-username').value.trim();
-            const password = document.getElementById('add-admin-password').value;
-            const confirmPassword = document.getElementById('add-admin-confirm-password').value;
-
-            if(!username || !password || !confirmPassword) {
-                showToast('error', 'Please fill in all fields.');
-                return;
-            }
-
-            if(password !== confirmPassword) {
-                showToast('error', 'Passwords do not match.');
-                return;
-            }
-
-            if(password.length < 6) {
-                showToast('error', 'Password must be at least 6 characters.');
-                return;
-            }
-
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if(!token) {
-                showToast('error', 'Not authenticated.');
-                return;
-            }
-
-            try {
-                const res = await fetch('{{ url('/api/superadmin/admins') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await res.json();
-                if(!res.ok) {
-                    showToast('error', data.message || 'Failed to create admin');
-                    return;
-                }
-
-                showToast('success', 'Admin account created successfully!');
-                closeAddAdminModal();
-                loadAdminAccounts();
-            } catch(e) {
-                showToast('error', 'Network error');
-            }
-        }
-
-        function openEditAdminModal(adminId) {
-            const admin = adminAccounts.find(a => a.id === adminId);
-            if(!admin) return;
-
-            document.getElementById('edit-admin-id').value = adminId;
-            document.getElementById('edit-admin-username').value = admin.username;
-            document.getElementById('edit-admin-password').value = '';
-            document.getElementById('edit-admin-confirm-password').value = '';
-            document.getElementById('edit-admin-modal').classList.remove('hidden-page');
-        }
-
-        function closeEditAdminModal() {
-            document.getElementById('edit-admin-modal').classList.add('hidden-page');
-        }
-
-        async function submitEditAdmin() {
-            const adminId = document.getElementById('edit-admin-id').value;
-            const username = document.getElementById('edit-admin-username').value.trim();
-            const password = document.getElementById('edit-admin-password').value;
-            const confirmPassword = document.getElementById('edit-admin-confirm-password').value;
-
-            if(!username) {
-                showToast('error', 'Username is required.');
-                return;
-            }
-
-            if(password && password !== confirmPassword) {
-                showToast('error', 'Passwords do not match.');
-                return;
-            }
-
-            if(password && password.length < 6) {
-                showToast('error', 'Password must be at least 6 characters.');
-                return;
-            }
-
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if(!token) {
-                showToast('error', 'Not authenticated.');
-                return;
-            }
-
-            try {
-                const body = { username };
-                if(password) body.password = password;
-
-                const res = await fetch(`{{ url('/api/superadmin/admins') }}/${adminId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                const data = await res.json();
-                if(!res.ok) {
-                    showToast('error', data.message || 'Failed to update admin');
-                    return;
-                }
-
-                showToast('success', 'Admin account updated successfully!');
-                closeEditAdminModal();
-                loadAdminAccounts();
-            } catch(e) {
-                showToast('error', 'Network error');
-            }
-        }
-
-        function openDeleteAdminModal(adminId) {
-            const admin = adminAccounts.find(a => a.id === adminId);
-            if(!admin) return;
-
-            document.getElementById('delete-admin-message').textContent = `Are you sure you want to delete the admin account "${admin.username}"?`;
-            
-            const confirmBtn = document.getElementById('confirm-delete-admin-btn');
-            confirmBtn.onclick = () => confirmDeleteAdmin(adminId);
-            
-            document.getElementById('delete-admin-modal').classList.remove('hidden-page');
-        }
-
-        function closeDeleteAdminModal() {
-            document.getElementById('delete-admin-modal').classList.add('hidden-page');
-        }
-
-        async function confirmDeleteAdmin(adminId) {
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if(!token) {
-                showToast('error', 'Not authenticated.');
-                return;
-            }
-
-            try {
-                const res = await fetch(`{{ url('/api/superadmin/admins') }}/${adminId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                const data = await res.json();
-                if(!res.ok) {
-                    showToast('error', data.message || 'Failed to delete admin');
-                    return;
-                }
-
-                showToast('success', 'Admin account deleted successfully!');
-                closeDeleteAdminModal();
-                loadAdminAccounts();
-            } catch(e) {
-                showToast('error', 'Network error');
-            }
-        }
-
         // ==================== EXPORTS ====================
+        // (No admin-account management in Admin view; removed stray top-level code)
+
         document.addEventListener('DOMContentLoaded', () => {
             const btnCsv = document.getElementById('btn-export-csv');
             const btnPdf = document.getElementById('btn-export-pdf');

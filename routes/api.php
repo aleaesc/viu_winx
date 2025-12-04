@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PublicSurveyResponseController;
 use App\Http\Controllers\Api\SurveyQuestionController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\DevAdminResetController;
+use App\Http\Controllers\Api\SuperAdminController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
@@ -56,6 +57,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin: stats endpoint
     Route::get('/admin/stats', [StatsController::class, 'index']);
+
+    // SuperAdmin: manage admin accounts
+    Route::get('/superadmin/admins', [SuperAdminController::class, 'index'])
+        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+    Route::post('/superadmin/admins', [SuperAdminController::class, 'store'])
+        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+    Route::put('/superadmin/admins/{id}', [SuperAdminController::class, 'update'])
+        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+    Route::delete('/superadmin/admins/{id}', [SuperAdminController::class, 'destroy'])
+        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
 });
 

@@ -77,6 +77,9 @@
 
         .btn-viu-continue { background-color: #D1D5DB; color: black; border: none; transition: all 0.3s ease; }
         .btn-viu-continue:hover { background-color: #F6BE00; transform: scale(1.02); }
+        /* Question flow: locked state until a star is selected */
+        .btn-viu-continue.is-disabled { background-color: #E5E7EB !important; color: #9CA3AF !important; cursor: not-allowed; }
+        .btn-viu-continue.is-disabled:hover { background-color: #E5E7EB !important; transform: none !important; }
 
         /* Chatbot Styles (Centered Modal) */
         .chat-overlay {
@@ -218,14 +221,14 @@
                         <div id="country-dropdown" class="absolute left-0 top-full mt-2 w-full max-h-72 overflow-y-auto bg-white rounded-xl shadow-xl border border-gray-200 hidden z-20">
                             <ul id="country-list" class="divide-y divide-gray-100"></ul>
                         </div>
-                        <input type="hidden" id="user-country" required />
+                        <input type="hidden" id="user-country" />
                     </div>
                 </div>
                 <div class="form-control w-full"><label class="label-minimal">Name (Optional)</label><input type="text" id="user-name" class="input input-minimal w-full" placeholder="Enter name"/></div>
-                <div class="form-control w-full"><label class="label-minimal">Email (Optional)</label><input type="email" id="user-email" class="input input-minimal w-full" placeholder="Enter email"/></div>
+                <div class="form-control w-full"><label class="label-minimal">Email (Optional)</label><input type="email" id="user-email" class="input input-minimal w-full" placeholder="Enter email" pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" title="Please enter a valid email address (e.g., name@example.com)"/><p id="user-email-error" class="text-xs text-red-500 mt-1 hidden">Please enter a valid email (e.g., name@gmail.com).</p></div>
                 <div class="flex items-center justify-center gap-4 mt-8">
                     <button type="button" onclick="goBack('welcome-page')" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
-                    <button type="submit" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    <button type="submit" onclick="return validateUserDetails();" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
                 </div>
             </form>
         </div>
@@ -270,6 +273,9 @@
                 <div class="genre-pill" onclick="toggleGenre(this)">Thai Drama</div>
                 <div class="genre-pill" onclick="toggleGenre(this)">Others</div>
             </div>
+            <div id="others-input-row" class="mt-4 hidden">
+                <input id="others-input" type="text" class="input input-minimal w-64" placeholder="Please specify..." oninput="syncOthersValue()" />
+            </div>
             <div class="flex items-center justify-center gap-4 mt-16">
                 <button type="button" onclick="goBack('privacy-page', 8)" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
                 <button type="button" onclick="startQuestions()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
@@ -296,7 +302,7 @@
         </div>
         <div class="w-full flex items-center justify-center gap-4 mb-10 md:mb-16">
             <button type="button" onclick="handleQuestionBack()" class="btn bg-viu-dark-gray hover-bg-viu-gray-hover border-none text-white rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i>BACK</button>
-            <button type="button" onclick="nextQuestion()" class="btn btn-viu-continue border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            <button id="continue-btn" type="button" onclick="nextQuestion()" class="btn btn-viu-continue is-disabled border-none rounded-full px-8 h-12 font-bold text-xs tracking-widest flex items-center gap-2" title="Please rate this question before continuing.">CONTINUE <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
         </div>
     </div>
 
@@ -869,14 +875,65 @@
             goToPage('genre-page', 17);
         }
 
+        function validateUserDetails(){
+            const emailEl = document.getElementById('user-email');
+            const errorEl = document.getElementById('user-email-error');
+            const email = (emailEl.value||'').trim();
+            // Reset state
+            emailEl.classList.remove('border-red-500');
+            if(errorEl){ errorEl.classList.add('hidden'); errorEl.textContent = 'Please enter a valid email (e.g., name@gmail.com).'; }
+            if(email){
+                const re = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                if(!re.test(email)){
+                    // Show inline hint and block
+                    emailEl.classList.add('border-red-500');
+                    if(errorEl){ errorEl.classList.remove('hidden'); }
+                    // Optional toast
+                    if(window.showToast){ showToast('error','Please enter a valid email (e.g., name@gmail.com).'); }
+                    emailEl.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function toggleGenre(el) {
             el.classList.toggle('selected');
             const text = el.innerText;
             if(selectedGenres.includes(text)) {
                 selectedGenres = selectedGenres.filter(g => g !== text);
+                if(text === 'Others') { document.getElementById('others-input-row').classList.add('hidden'); }
             } else {
                 selectedGenres.push(text);
+                if(text === 'Others') { document.getElementById('others-input-row').classList.remove('hidden'); }
             }
+            console.log('Genre toggled:', text, '| Current selection:', selectedGenres);
+        }
+
+        function syncOthersValue(){
+            const inputEl = document.getElementById('others-input');
+            if(!inputEl) return;
+            const val = inputEl.value.trim();
+            console.log('syncOthersValue called - input value:', val, '| length:', val.length);
+            
+            // Only proceed if "Others" was selected
+            const hasOthers = selectedGenres.some(g => g === 'Others' || g.startsWith('Others: '));
+            if(!hasOthers) return;
+            
+            // Remove base 'Others' and any previous 'Others: xxx' entries
+            selectedGenres = selectedGenres.filter(g => g !== 'Others' && !g.startsWith('Others: '));
+            
+            // Add the full custom tag if there's text
+            if(val){
+                const customTag = `Others: ${val}`;
+                selectedGenres.push(customTag);
+                console.log('Added custom Others:', customTag);
+            } else {
+                // If no text yet, keep base 'Others' so we know it was selected
+                selectedGenres.push('Others');
+                console.log('Kept base Others (no text yet)');
+            }
+            console.log('syncOthersValue result - selectedGenres:', selectedGenres);
         }
 
         function startQuestions() {
@@ -904,6 +961,7 @@
             document.getElementById('q-progress-fill').style.width = progress + '%';
             document.getElementById('q-progress-text').innerText = progress + '%';
             renderStars(data.rating);
+            updateContinueState();
         }
 
         function renderStars(currentRating) {
@@ -915,11 +973,26 @@
                 const fillColor = isFilled ? '#F6BE00' : '#E5E7EB'; 
                 const iconClass = isFilled ? 'star-icon active' : 'star-icon';
                 starDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${fillColor}" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${iconClass}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-                starDiv.onclick = () => { questions[currentQIndex].rating = i; renderStars(i); };
+                starDiv.onclick = () => { questions[currentQIndex].rating = i; renderStars(i); updateContinueState(); };
                 starDiv.onmouseenter = () => previewStars(i);
                 container.appendChild(starDiv);
             }
             container.onmouseleave = () => renderStars(questions[currentQIndex].rating);
+        }
+
+        function updateContinueState(){
+            const btn = document.getElementById('continue-btn');
+            if(!btn) return;
+            const rated = Number(questions[currentQIndex]?.rating || 0) >= 1;
+            if(rated){
+                btn.classList.remove('is-disabled');
+                btn.setAttribute('title', 'Continue');
+                btn.removeAttribute('aria-disabled');
+            } else {
+                btn.classList.add('is-disabled');
+                btn.setAttribute('title', 'Please rate this question before continuing.');
+                btn.setAttribute('aria-disabled', 'true');
+            }
         }
 
         function previewStars(hoverIndex) {
@@ -931,6 +1004,8 @@
         }
 
         function nextQuestion() {
+            const currentRating = Number(questions[currentQIndex]?.rating || 0);
+            if(currentRating < 1) { return; }
             if(currentQIndex < questions.length - 1) {
                 currentQIndex++;
                 loadQuestion();
@@ -971,16 +1046,27 @@
         }
 
         async function submitSurvey() {
+            console.log('Before sync - selectedGenres:', selectedGenres);
+            // Sync Others value one final time before submission
+            syncOthersValue();
+            console.log('After sync - selectedGenres:', selectedGenres);
+            
             const country = document.getElementById('user-country').value || null;
             const email = document.getElementById('user-email').value || null;
             const name = document.getElementById('user-name').value || null;
             const suggestion = document.getElementById('final-comment').value || null;
-            const serviceVoted = selectedGenres.length > 0 ? selectedGenres[0] : 'General';
+            // Capture all selected genres; include custom Others expansion
+            const servicesVoted = (selectedGenres && selectedGenres.length) ? selectedGenres.slice() : ['General'];
+            console.log('Final payload - services:', servicesVoted);
+            console.log('Final payload - country:', country);
+            console.log('Final payload - name:', name);
+            console.log('Final payload - email:', email);
             const payload = {
                 country,
                 email,
                 name,
-                service: serviceVoted,
+                services: servicesVoted,
+                service: servicesVoted[0],
                 ratings: questions.map(q => ({ question_id: q.id || null, title: q.title, rating: q.rating })),
                 suggestion,
                 submitted_at: new Date().toISOString()
