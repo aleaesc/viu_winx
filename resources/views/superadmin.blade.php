@@ -602,7 +602,7 @@
             else { input.type = "password"; icon.style.opacity = '1'; }
         }
 
-        async function fetchAdminData(range){
+        async function fetchSuperAdminData(range){
             try {
                 const token = localStorage.getItem('auth_token');
                 // Backend listing endpoints not yet implemented; use public responses endpoint as fallback
