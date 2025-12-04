@@ -372,10 +372,9 @@
             <div class="chat-header">
                 <div class="flex items-center gap-2">
                     <img src="/chatbot.svg" class="chat-avatar" alt="Bot" />
-                    <span class="font-extrabold text-base">Virtual Assistant</span>
+                    <span class="font-extrabold text-base">Viu Chatbot</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button class="text-black hover:text-white"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
                     <button class="text-black hover:text-white" onclick="toggleChat()"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
             </div>
