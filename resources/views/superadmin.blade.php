@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIU Admin Portal</title>
+    <title>VIU Super Admin Portal</title>
     
     <!-- Tailwind CSS & DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -41,13 +41,13 @@
         if(viewEl) viewEl.classList.remove('hidden-page');
         
         if(tabName === 'settings') {
-            const u = localStorage.getItem('admin_username');
+            const u = localStorage.getItem('superadmin_username');
             const usernameInput = document.getElementById('set-username');
             if(u && usernameInput) usernameInput.value = u;
         }
         if(tabName === 'answers' || tabName === 'suggestions') {
-            if(typeof fetchAdminData === 'function') {
-                fetchAdminData(window.selectedRange || 'all');
+            if(typeof fetchSuperAdminData === 'function') {
+                fetchSuperAdminData(window.selectedRange || 'all');
             }
         }
     };
@@ -73,7 +73,7 @@
                 return;
             }
             localStorage.setItem('auth_token', data.token);
-            localStorage.setItem('admin_username', username);
+            localStorage.setItem('superadmin_username', username);
             const loginPage = document.getElementById('login-page');
             const appContainer = document.getElementById('app-container');
             if(loginPage) loginPage.classList.add('hidden-page');
@@ -298,7 +298,7 @@
             <div class="p-8 pb-8 flex flex-col items-center">
                 <div class="flex flex-col items-center">
                     <h1 class="text-4xl font-black tracking-tight text-viu-yellow leading-none">viu</h1>
-                    <span class="text-black font-bold tracking-widest text-sm mt-1">ADMIN</span>
+                    <span class="text-black font-bold tracking-widest text-sm mt-1">SUPER ADMIN</span>
                 </div>
             </div>
             <nav class="flex-1 px-4 overflow-y-auto">
@@ -381,10 +381,10 @@
                     <button id="btn-reload-local-a" class="btn btn-xs bg-white border border-gray-300 hover:border-viu-yellow text-gray-700 rounded-full">Reload Local Data</button>
                 </div>
                 <div class="flex flex-col lg:flex-row gap-4 mb-6">
-                    <div class="flex-grow"><input type="text" id="adminSearchInput" placeholder="Search by location, email, or services..." class="input-filter" oninput="adminFilterTable()" /></div>
-                    <div class="w-full lg:w-48"><select id="adminServiceFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Services (All)</option><option value="movies">Movies</option><option value="kdrama">KDRAMA</option><option value="variety shows">Variety Shows</option><option value="anime">Anime</option><option value="thai drama">Thai Drama</option><option value="general">General</option></select></div>
-                    <div class="w-full lg:w-48"><select id="adminCountryFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Country (All)</option><option value="Singapore">Singapore</option><option value="Philippines">Philippines</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Thailand">Thailand</option><option value="Hong Kong">Hong Kong</option></select></div>
-                    <div class="w-full lg:w-48"><select id="adminRangeFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="adminFilterTable()"><option value="all">Date Range (All)</option><option value="7d">Last 7 Days</option><option value="30d">Last 30 Days</option></select></div>
+                    <div class="flex-grow"><input type="text" id="superadminSearchInput" placeholder="Search by location, email, or services..." class="input-filter" oninput="superadminFilterTable()" /></div>
+                    <div class="w-full lg:w-48"><select id="superadminServiceFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="superadminFilterTable()"><option value="all">Services (All)</option><option value="movies">Movies</option><option value="kdrama">KDRAMA</option><option value="variety shows">Variety Shows</option><option value="anime">Anime</option><option value="thai drama">Thai Drama</option><option value="general">General</option></select></div>
+                    <div class="w-full lg:w-48"><select id="superadminCountryFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="superadminFilterTable()"><option value="all">Country (All)</option><option value="Singapore">Singapore</option><option value="Philippines">Philippines</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Thailand">Thailand</option><option value="Hong Kong">Hong Kong</option></select></div>
+                    <div class="w-full lg:w-48"><select id="superadminRangeFilter" class="input-filter cursor-pointer appearance-none bg-white" onchange="superadminFilterTable()"><option value="all">Date Range (All)</option><option value="7d">Last 7 Days</option><option value="30d">Last 30 Days</option></select></div>
                     <!-- Answers Export Dropdown beside date range -->
                     <div class="dropdown lg:self-stretch">
                         <label tabindex="0" class="btn bg-white border border-gray-300 hover:border-viu-yellow text-gray-700 font-semibold rounded-full flex items-center gap-2 h-full min-h-0 px-4">
@@ -397,7 +397,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="text-gray-600 font-medium mb-4" id="adminResultCount">0 Submissions found.</div>
+                <div class="text-gray-600 font-medium mb-4" id="superadminResultCount">0 Submissions found.</div>
                 <div class="text-xs text-gray-400 mb-2" id="data-source-badge" style="display:none;">Using local fallback data</div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <table class="w-full text-left border-collapse">
@@ -427,7 +427,7 @@
                                 <th class="pr-8 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700" id="adminAnswersTableBody">
+                        <tbody class="text-gray-700" id="superadminAnswersTableBody">
                             <!-- JS will populate this -->
                         </tbody>
                     </table>
@@ -469,7 +469,7 @@
             <div id="view-settings" class="hidden-page fade-in">
                 <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">Settings</h2></header>
                 <div class="dashboard-card max-w-xl">
-                    <h3 class="text-xl font-bold text-black mb-4">Update Admin Credentials</h3>
+                    <h3 class="text-xl font-bold text-black mb-4">Update Super Admin Credentials</h3>
                     <form class="flex flex-col gap-4" onsubmit="event.preventDefault(); submitSettings();">
                         <div>
                             <label class="label-small">Current Password</label>
@@ -477,7 +477,7 @@
                         </div>
                         <div>
                             <label class="label-small">New Username</label>
-                            <input type="text" id="set-username" class="input-underline" placeholder="New admin username" required>
+                            <input type="text" id="set-username" class="input-underline" placeholder="New super admin username" required>
                         </div>
                         <div>
                             <label class="label-small">New Password</label>
@@ -586,7 +586,7 @@
             questions = storedQs ? JSON.parse(storedQs) : JSON.parse(JSON.stringify(defaultQuestions));
 
             // 2. Load Responses & Suggestions from backend
-            fetchAdminData();
+            fetchSuperAdminData();
 
             // 3. Initialize Views
             renderQuestionsList();
@@ -659,7 +659,7 @@
                         suggestion: r.suggestion || null,
                         ratings: normalizeRatingsArr(r.ratings || [])
                     }));
-                    const msgEl = document.getElementById('adminResultCount');
+                    const msgEl = document.getElementById('superadminResultCount');
                     const badgeEl = document.getElementById('data-source-badge');
                     if(msgEl) msgEl.innerText = `${responses.length} Submissions loaded.`;
                     if(badgeEl) badgeEl.style.display = 'block';
@@ -697,7 +697,7 @@
         // Auto-refresh admin when local submissions change (e.g., new client submit)
         window.addEventListener('storage', (e) => {
             if(e.key === 'viu_submissions') {
-                fetchAdminData(window.selectedRange || 'all');
+                fetchSuperAdminData(window.selectedRange || 'all');
             }
         });
 
@@ -722,7 +722,7 @@
                 ratings: r.ratings || []
             }));
             suggestions = responses.filter(r => !!r.suggestion).map(r => ({ id: r.id, suggestion: r.suggestion, country: r.country, submitted_at: r.submitted_at }));
-            const msgEl = document.getElementById('adminResultCount');
+            const msgEl = document.getElementById('superadminResultCount');
             if(msgEl) msgEl.innerText = `${responses.length} Submissions loaded.`;
             const badgeEl = document.getElementById('data-source-badge');
             if(badgeEl) badgeEl.style.display = 'block';
@@ -829,10 +829,10 @@
         }
 
         function renderSurveyAnswersTable() {
-            const tbody = document.getElementById('adminAnswersTableBody');
+            const tbody = document.getElementById('superadminAnswersTableBody');
             if(!tbody) return;
             tbody.innerHTML = '';
-            const countEl = document.getElementById('adminResultCount');
+            const countEl = document.getElementById('superadminResultCount');
             if(countEl){ countEl.innerText = `${responses.length} Submissions found.`; }
             const dataRows = getSortedResponses();
             dataRows.forEach((r, index) => {
@@ -972,13 +972,13 @@
 
 
 
-        function adminFilterTable() {
+        function superadminFilterTable() {
             // Re-implement filter logic if needed, or just rely on CSS filtering
-            const searchInput = document.getElementById('adminSearchInput').value.toLowerCase();
-            const serviceFilter = document.getElementById('adminServiceFilter').value;
-            const countryFilter = document.getElementById('adminCountryFilter') ? document.getElementById('adminCountryFilter').value : 'all';
-            const rangeFilter = document.getElementById('adminRangeFilter') ? document.getElementById('adminRangeFilter').value : 'all';
-            const tbody = document.getElementById('adminAnswersTableBody');
+            const searchInput = document.getElementById('superadminSearchInput').value.toLowerCase();
+            const serviceFilter = document.getElementById('superadminServiceFilter').value;
+            const countryFilter = document.getElementById('superadminCountryFilter') ? document.getElementById('superadminCountryFilter').value : 'all';
+            const rangeFilter = document.getElementById('superadminRangeFilter') ? document.getElementById('superadminRangeFilter').value : 'all';
+            const tbody = document.getElementById('superadminAnswersTableBody');
             const rows = Array.from(tbody.getElementsByTagName('tr'));
             rows.forEach(row => {
                 const text = row.innerText.toLowerCase();
@@ -989,7 +989,7 @@
                 if(countryFilter !== 'all') ok = ok && countryCell === countryFilter;
                 row.style.display = ok ? '' : 'none';
             });
-            if(rangeFilter && rangeFilter!=='all') { fetchAdminData(rangeFilter); } else { fetchAdminData('all'); }
+            if(rangeFilter && rangeFilter!=='all') { fetchSuperAdminData(rangeFilter); } else { fetchSuperAdminData('all'); }
         }
 
         // ==================== SUGGESTIONS LOGIC ====================
@@ -1264,7 +1264,7 @@
                     return;
                 }
                 showToast('success', 'Credentials updated successfully.');
-                localStorage.setItem('admin_username', username);
+                localStorage.setItem('superadmin_username', username);
                 document.getElementById('set-current').value = '';
                 document.getElementById('set-password').value = '';
                 document.getElementById('set-password2').value = '';
