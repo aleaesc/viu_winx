@@ -174,9 +174,10 @@
         .login-card { background-color: white; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .input-login { background: transparent; border: none; border-bottom: 2px solid #E5E7EB; border-radius: 0; padding-left: 0; padding-right: 2.5rem; transition: border-color 0.3s ease; font-size: 1rem; color: #374151; height: 3rem; }
         .input-login:focus { outline: none; border-bottom-color: #F6BE00; box-shadow: none; }
-        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: #6B7280; font-weight: 600; font-size: 0.95rem; border-radius: 0.75rem; transition: all 0.2s; margin-bottom: 0.5rem; cursor: pointer; }
+        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #6B7280; font-weight: 600; font-size: 0.95rem; border-radius: 0.75rem; transition: all 0.2s; margin-bottom: 0.5rem; cursor: pointer; position: relative; }
         .sidebar-link:hover { background-color: #F3F4F6; color: black; }
         .sidebar-link.active { background-color: #F6BE00; color: black; box-shadow: 0 4px 6px -1px rgba(246, 190, 0, 0.3); }
+        .sidebar-collapsed .sidebar-link { padding: 0.75rem; display: flex; align-items: center; justify-content: center; }
         .dashboard-card { background-color: white; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #F3F4F6; padding: 1.5rem; }
         .stat-label { color: #9CA3AF; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 0.5rem; }
         .text-green-500 { color: #10B981; }
@@ -193,6 +194,28 @@
         .input-underline { background: transparent; border: none; border-bottom: 2px solid #E5E7EB; border-radius: 0; padding-left: 0; transition: border-color 0.3s ease; font-size: 1rem; color: #374151; height: 3rem; width: 100%; }
         .input-underline:focus { outline: none; border-bottom-color: #F6BE00; box-shadow: none; }
         .label-small { font-size: 0.75rem; font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
+
+        /* Sidebar Toggle & Collapse Styles */
+        .sidebar-collapsed { width: 80px !important; }
+        .sidebar-collapsed .sidebar-text { opacity: 0; width: 0; overflow: hidden; display: none; }
+        .sidebar-collapsed .sidebar-logo-text { display: none; }
+        .sidebar-collapsed .sidebar-link i { flex-shrink: 0; }
+        aside { transition: width 0.3s ease; }
+        .sidebar-text { transition: opacity 0.3s ease, width 0.3s ease; white-space: nowrap; }
+        .sidebar-link svg { flex-shrink: 0; display: block !important; width: 20px; height: 20px; min-width: 20px; min-height: 20px; }
+        .sidebar-link i { flex-shrink: 0; display: inline-flex !important; width: 1.25rem; height: 1.25rem; align-items: center; justify-content: center; }
+        .sidebar-link i svg { display: block !important; width: 20px; height: 20px; }
+        .sidebar-collapsed .sidebar-link i { display: inline-flex !important; }
+        .sidebar-collapsed .sidebar-link svg { display: block !important; }
+        .toggle-sidebar-btn { position: absolute; right: -12px; top: 20px; width: 24px; height: 24px; background: #F6BE00; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 30; transition: transform 0.3s ease; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); }
+        .toggle-sidebar-btn svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+        .sidebar-collapsed .toggle-sidebar-btn svg { transform: rotate(180deg); }
+        .sidebar-tooltip { position: fixed; margin-left: 110px; background: #1F2937; color: white; padding: 8px 14px; border-radius: 8px; font-size: 0.875rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .sidebar-collapsed .sidebar-link:hover .sidebar-tooltip { opacity: 1; }
+        nav { overflow-y: auto !important; }
+        nav::-webkit-scrollbar { display: none; }
+        nav { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Toast Styles (Bottom-right, exact UI spec) */
         .toast-stack { position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.9rem; }
@@ -275,6 +298,41 @@
             <div class="flex gap-3">
                 <button onclick="closeDeleteModal()" class="btn flex-1 bg-gray-200 hover:bg-gray-300 border-none text-gray-700 font-bold rounded-full">Cancel</button>
                 <button id="confirm-delete-btn" class="btn flex-1 bg-red-500 hover:bg-red-600 border-none text-white font-bold rounded-full">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 3b. DELETE QUESTION CONFIRMATION MODAL ==================== -->
+    <div id="delete-question-modal" class="overlay-container hidden-page">
+        <div class="white-card w-full max-w-md p-8 md:p-10 relative fade-in">
+            <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold text-center mb-4 text-black">Delete Question</h2>
+            <p class="text-gray-600 text-center mb-2">Are you sure you want to delete this question?</p>
+            <p class="text-gray-500 text-sm text-center mb-8">This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteQuestionModal()" class="btn flex-1 bg-gray-200 hover:bg-gray-300 border-none text-gray-700 font-bold rounded-full">Cancel</button>
+                <button id="confirm-delete-question-btn" class="btn flex-1 bg-red-500 hover:bg-red-600 border-none text-white font-bold rounded-full">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 3c. LOGOUT CONFIRMATION MODAL ==================== -->
+    <div id="logout-confirm-modal" class="overlay-container hidden-page">
+        <div class="white-card w-full max-w-md p-8 md:p-10 relative fade-in">
+            <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <i data-lucide="log-out" class="w-8 h-8 text-yellow-600"></i>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold text-center mb-4 text-black">Logout</h2>
+            <p class="text-gray-600 text-center mb-8">Are you sure you want to logout?</p>
+            <div class="flex gap-3">
+                <button onclick="closeLogoutModal()" class="btn flex-1 bg-gray-200 hover:bg-gray-300 border-none text-gray-700 font-bold rounded-full">Cancel</button>
+                <button onclick="confirmLogout()" class="btn flex-1 bg-viu-yellow hover:bg-yellow-500 border-none text-black font-bold rounded-full">Logout</button>
             </div>
         </div>
     </div>
@@ -380,22 +438,49 @@
     <div id="app-container" class="flex h-full hidden-page">
         
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm z-20">
+        <aside id="superadmin-sidebar" class="w-64 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm z-20 relative">
+            <div class="toggle-sidebar-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </div>
             <div class="p-8 pb-8 flex flex-col items-center">
                 <div class="flex flex-col items-center">
-                    <h1 class="text-4xl font-black tracking-tight text-viu-yellow leading-none">viu</h1>
-                    <span class="text-black font-bold tracking-widest text-sm mt-1">SUPER ADMIN</span>
+                    <h1 class="text-4xl font-black tracking-tight text-viu-yellow leading-none sidebar-logo-text">viu</h1>
+                    <span class="text-black font-bold tracking-widest text-sm mt-1 sidebar-logo-text">SUPER ADMIN</span>
                 </div>
             </div>
             <nav class="flex-1 px-4 overflow-y-auto">
-                <div onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-link active"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</div>
-                <div onclick="switchTab('answers')" id="nav-answers" class="sidebar-link"><i data-lucide="list-checks" class="w-5 h-5"></i> Survey Answers</div>
-                <div onclick="switchTab('suggestions')" id="nav-suggestions" class="sidebar-link"><i data-lucide="message-square-text" class="w-5 h-5"></i> Suggestions</div>
-                <div onclick="switchTab('edit')" id="nav-edit" class="sidebar-link"><i data-lucide="file-edit" class="w-5 h-5"></i> Edit Questions</div>
+                <div onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-link active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    <span class="sidebar-text ml-3">Dashboard</span>
+                    <span class="sidebar-tooltip">Dashboard</span>
+                </div>
+                <div onclick="switchTab('answers')" id="nav-answers" class="sidebar-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
+                    <span class="sidebar-text ml-3">Survey Answers</span>
+                    <span class="sidebar-tooltip">Survey Answers</span>
+                </div>
+                <div onclick="switchTab('suggestions')" id="nav-suggestions" class="sidebar-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/></svg>
+                    <span class="sidebar-text ml-3">Suggestions</span>
+                    <span class="sidebar-tooltip">Suggestions</span>
+                </div>
+                <div onclick="switchTab('edit')" id="nav-edit" class="sidebar-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5"/><polyline points="14 2 14 8 20 8"/><path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z"/></svg>
+                    <span class="sidebar-text ml-3">Edit Questions</span>
+                    <span class="sidebar-tooltip">Edit Questions</span>
+                </div>
             </nav>
             <div class="p-4 border-t border-gray-100">
-                <div onclick="switchTab('settings')" id="nav-settings" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5"></i> Settings</div>
-                <div onclick="logout()" class="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 cursor-pointer"><i data-lucide="log-out" class="w-5 h-5"></i> Logout</div>
+                <div onclick="switchTab('settings')" id="nav-settings" class="sidebar-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span class="sidebar-text ml-3">Settings</span>
+                    <span class="sidebar-tooltip">Settings</span>
+                </div>
+                <div onclick="logout()" class="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    <span class="sidebar-text ml-3">Logout</span>
+                    <span class="sidebar-tooltip">Logout</span>
+                </div>
             </div>
         </aside>
 
@@ -832,9 +917,75 @@
         });
 
         function logout() {
+            document.getElementById('logout-confirm-modal').classList.remove('hidden-page');
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logout-confirm-modal').classList.add('hidden-page');
+        }
+
+        function confirmLogout() {
+            document.getElementById('logout-confirm-modal').classList.add('hidden-page');
             document.getElementById('app-container').classList.add('hidden-page');
             document.getElementById('login-page').classList.remove('hidden-page');
             document.querySelectorAll('input').forEach(i => i.value = '');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('superadmin-sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('superadmin_sidebar_collapsed', sidebar.classList.contains('sidebar-collapsed'));
+            ensureSidebarIcons('superadmin-sidebar');
+            setTimeout(() => { lucide.createIcons(); ensureSidebarIcons('superadmin-sidebar'); }, 10);
+            setTimeout(() => ensureSidebarIcons('superadmin-sidebar'), 50);
+            setTimeout(() => ensureSidebarIcons('superadmin-sidebar'), 100);
+        }
+
+        // Restore sidebar state on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const collapsed = localStorage.getItem('superadmin_sidebar_collapsed') === 'true';
+            if(collapsed) {
+                document.getElementById('superadmin-sidebar')?.classList.add('sidebar-collapsed');
+            }
+            ensureSidebarIcons('superadmin-sidebar');
+            setTimeout(() => { lucide.createIcons(); ensureSidebarIcons('superadmin-sidebar'); }, 10);
+            setTimeout(() => { lucide.createIcons(); ensureSidebarIcons('superadmin-sidebar'); }, 100);
+            setTimeout(() => { lucide.createIcons(); ensureSidebarIcons('superadmin-sidebar'); }, 300);
+            setTimeout(() => { lucide.createIcons(); ensureSidebarIcons('superadmin-sidebar'); }, 600);
+            setTimeout(() => ensureSidebarIcons('superadmin-sidebar'), 1000);
+        });
+
+        // Force icon refresh on any state change
+        setInterval(() => {
+            if(typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+            ensureSidebarIcons('superadmin-sidebar');
+        }, 1000);
+
+        function ensureSidebarIcons(sidebarId) {
+            const iconMap = {
+                'layout-dashboard': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
+                'list-checks': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>',
+                'message-square-text': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-text"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/></svg>',
+                'file-edit': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-edit"><path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5"/><polyline points="14 2 14 8 20 8"/><path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z"/></svg>',
+                'settings': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+                'log-out': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>'
+            };
+            try {
+                const sidebar = document.getElementById(sidebarId);
+                if(!sidebar) return;
+                sidebar.querySelectorAll('i[data-lucide]').forEach(el => {
+                    const name = el.getAttribute('data-lucide');
+                    if(iconMap[name]) {
+                        el.innerHTML = iconMap[name];
+                        el.style.display = 'inline-flex';
+                        el.style.alignItems = 'center';
+                        el.style.justifyContent = 'center';
+                    }
+                });
+            } catch(_) { /* noop */ }
         }
 
         // ==================== DASHBOARD LOGIC ====================
@@ -1293,14 +1444,28 @@
             }
         }
 
+        let questionToDelete = null;
+
         function deleteQuestion(index) {
-            if(confirm('Are you sure you want to delete this question?')) {
-                questions.splice(index, 1);
+            questionToDelete = index;
+            document.getElementById('delete-question-modal').classList.remove('hidden-page');
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        function closeDeleteQuestionModal() {
+            document.getElementById('delete-question-modal').classList.add('hidden-page');
+            questionToDelete = null;
+        }
+
+        document.getElementById('confirm-delete-question-btn')?.addEventListener('click', function() {
+            if(questionToDelete !== null) {
+                questions.splice(questionToDelete, 1);
                 localStorage.setItem('viu_survey_questions', JSON.stringify(questions));
                 renderQuestionsList();
                 showToast('success', 'Question deleted successfully!');
+                closeDeleteQuestionModal();
             }
-        }
+        });
 
         // ==================== CHARTS LOGIC ====================
         let barChartInstance = null;
