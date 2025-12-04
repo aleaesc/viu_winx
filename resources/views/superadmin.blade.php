@@ -42,7 +42,7 @@
         
         if(tabName === 'settings') {
             const u = localStorage.getItem('superadmin_username');
-            const usernameInput = document.getElementById('set-username');
+            const usernameInput = document.getElementById('new-username');
             if(u && usernameInput) usernameInput.value = u;
         }
         if(tabName === 'answers' || tabName === 'suggestions') {
@@ -468,27 +468,40 @@
             <!-- VIEW: SETTINGS -->
             <div id="view-settings" class="hidden-page fade-in">
                 <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">Settings</h2></header>
-                <div class="dashboard-card max-w-xl">
-                    <h3 class="text-xl font-bold text-black mb-4">Update Super Admin Credentials</h3>
-                    <form class="flex flex-col gap-4" onsubmit="event.preventDefault(); submitSettings();">
+                
+                <!-- Change Username Section -->
+                <div class="dashboard-card max-w-xl mb-6">
+                    <h3 class="text-xl font-bold text-black mb-4">Change Username</h3>
+                    <form class="flex flex-col gap-4" onsubmit="event.preventDefault(); submitUsernameChange();">
                         <div>
                             <label class="label-small">Current Password</label>
-                            <input type="password" id="set-current" class="input-underline" placeholder="Enter current password" required>
+                            <input type="password" id="username-current-password" class="input-underline" placeholder="Enter current password" required>
                         </div>
                         <div>
                             <label class="label-small">New Username</label>
-                            <input type="text" id="set-username" class="input-underline" placeholder="New super admin username" required>
+                            <input type="text" id="new-username" class="input-underline" placeholder="New super admin username" required>
+                        </div>
+                        <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full mt-2">Update Username</button>
+                    </form>
+                </div>
+
+                <!-- Change Password Section -->
+                <div class="dashboard-card max-w-xl">
+                    <h3 class="text-xl font-bold text-black mb-4">Change Password</h3>
+                    <form class="flex flex-col gap-4" onsubmit="event.preventDefault(); submitPasswordChange();">
+                        <div>
+                            <label class="label-small">Current Password</label>
+                            <input type="password" id="password-current-password" class="input-underline" placeholder="Enter current password" required>
                         </div>
                         <div>
                             <label class="label-small">New Password</label>
-                            <input type="password" id="set-password" class="input-underline" placeholder="New password" required>
+                            <input type="password" id="new-password" class="input-underline" placeholder="New password (min 6 characters)" required>
                         </div>
                         <div>
                             <label class="label-small">Confirm New Password</label>
-                            <input type="password" id="set-password2" class="input-underline" placeholder="Confirm new password" required>
+                            <input type="password" id="confirm-new-password" class="input-underline" placeholder="Confirm new password" required>
                         </div>
-                        <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full mt-2">Save Changes</button>
-                        <div id="set-msg" class="text-sm mt-2"></div>
+                        <button type="submit" class="btn bg-viu-yellow hover-bg-viu-dark border-none text-black font-bold rounded-full mt-2">Update Password</button>
                     </form>
                 </div>
             </div>
@@ -1227,20 +1240,20 @@
         }
 
         // ==================== SETTINGS SUBMIT ====================
-        async function submitSettings() {
-            const current = document.getElementById('set-current').value;
-            const username = document.getElementById('set-username').value.trim();
-            const pwd1 = document.getElementById('set-password').value;
-            const pwd2 = document.getElementById('set-password2').value;
-            const msg = document.getElementById('set-msg');
-            msg.className = 'text-sm mt-2';
-            msg.innerText = '';
+        async function submitUsernameChange() {
+            const currentPassword = document.getElementById('username-current-password').value;
+            const newUsername = document.getElementById('new-username').value.trim();
 
-            if(!current || !username || !pwd1 || !pwd2) { msg.innerText = 'Please fill in all fields.'; msg.classList.add('text-red-600'); return; }
-            if(pwd1 !== pwd2) { msg.innerText = 'New passwords do not match.'; msg.classList.add('text-red-600'); return; }
+            if(!currentPassword || !newUsername) {
+                showToast('error', 'Please fill in all fields.');
+                return;
+            }
 
-            const token = localStorage.getItem('token');
-            if(!token) { msg.innerText = 'Not authenticated. Please login again.'; msg.classList.add('text-red-600'); return; }
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            if(!token) {
+                showToast('error', 'Not authenticated. Please login again.');
+                return;
+            }
 
             try {
                 const res = await fetch('{{ url('/api/admin/settings') }}', {
@@ -1252,22 +1265,83 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'omit',
-                    body: JSON.stringify({ current_password: current, new_username: username, new_password: pwd1 })
+                    body: JSON.stringify({ 
+                        current_password: currentPassword, 
+                        new_username: newUsername 
+                    })
                 });
                 const data = await res.json();
                 if(!res.ok) {
-                    if (data && (data.message || '').toLowerCase().includes('current password')) {
-                        showErrorModal('Wrong Password', 'The current password you entered is incorrect.');
+                    if (data && (data.message || '').toLowerCase().includes('password')) {
+                        showToast('error', 'Current password is incorrect.');
                     } else {
                         showToast('error', data.message || 'Update failed');
                     }
                     return;
                 }
-                showToast('success', 'Credentials updated successfully.');
-                localStorage.setItem('superadmin_username', username);
-                document.getElementById('set-current').value = '';
-                document.getElementById('set-password').value = '';
-                document.getElementById('set-password2').value = '';
+                showToast('success', 'Username updated successfully!');
+                localStorage.setItem('superadmin_username', newUsername);
+                document.getElementById('username-current-password').value = '';
+                document.getElementById('new-username').value = newUsername;
+            } catch(e) {
+                showToast('error', 'Network error');
+            }
+        }
+
+        async function submitPasswordChange() {
+            const currentPassword = document.getElementById('password-current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-new-password').value;
+
+            if(!currentPassword || !newPassword || !confirmPassword) {
+                showToast('error', 'Please fill in all fields.');
+                return;
+            }
+
+            if(newPassword !== confirmPassword) {
+                showToast('error', 'New passwords do not match.');
+                return;
+            }
+
+            if(newPassword.length < 6) {
+                showToast('error', 'Password must be at least 6 characters.');
+                return;
+            }
+
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            if(!token) {
+                showToast('error', 'Not authenticated. Please login again.');
+                return;
+            }
+
+            try {
+                const res = await fetch('{{ url('/api/admin/settings') }}', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'omit',
+                    body: JSON.stringify({ 
+                        current_password: currentPassword, 
+                        new_password: newPassword 
+                    })
+                });
+                const data = await res.json();
+                if(!res.ok) {
+                    if (data && (data.message || '').toLowerCase().includes('password')) {
+                        showToast('error', 'Current password is incorrect.');
+                    } else {
+                        showToast('error', data.message || 'Update failed');
+                    }
+                    return;
+                }
+                showToast('success', 'Password updated successfully!');
+                document.getElementById('password-current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-new-password').value = '';
             } catch(e) {
                 showToast('error', 'Network error');
             }
