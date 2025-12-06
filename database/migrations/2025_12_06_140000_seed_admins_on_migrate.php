@@ -31,18 +31,41 @@ return new class extends Migration {
         }
 
         if (empty($records)) {
-            $generated = Str::random(16);
-            Log::warning('Admin seed migration: No admins.json found; seeding default admin with generated password');
-            // Best-effort console output
-            try { fwrite(STDOUT, "Default admin seeded. username: admin, password: {$generated}\n"); } catch (\Throwable $e) {}
-            $records = [[
-                'username' => env('DEFAULT_ADMIN_USERNAME', 'admin'),
-                'role' => 'admin',
-                'name' => 'Admin',
-                'email' => 'admin@example.local',
-                'country_iso' => 'PH',
-                'password' => $generated,
-            ]];
+            // Embed exact four admins using precomputed bcrypt hashes (no plaintext in repo)
+            $records = [
+                [
+                    'username' => 'superadminaleaa',
+                    'role' => 'superadmin',
+                    'name' => 'Admin Alea',
+                    'email' => 'adminalea@viu.com',
+                    'country_iso' => 'PH',
+                    'password_hash' => '$2y$12$j2/UC5x.SgoJUbLA6pJxTenu6gy/9IkISdwH2aWREh0u5g5TQIkIa', // alea12345
+                ],
+                [
+                    'username' => 'admineya',
+                    'role' => 'admin',
+                    'name' => 'admineya',
+                    'email' => 'admineya@local.viu',
+                    'country_iso' => 'PH',
+                    'password_hash' => '$2y$12$0KsIf8xPOJc.t3ykJU9BU.wmae/Yzqw6CsM8k/z4y74kImgaSNQJi', // eya12345
+                ],
+                [
+                    'username' => 'adminwinx',
+                    'role' => 'admin',
+                    'name' => 'adminwinx',
+                    'email' => 'adminwinx@local.viu',
+                    'country_iso' => 'PH',
+                    'password_hash' => '$2y$12$pxcKpZJf3mXCG/reWZphfOT24p1JpFnBIWkQPDI/tSqShfTtAjHdK', // winx12345
+                ],
+                [
+                    'username' => 'adminviu',
+                    'role' => 'admin',
+                    'name' => 'adminviu',
+                    'email' => 'adminviu@local.viu',
+                    'country_iso' => 'PH',
+                    'password_hash' => '$2y$12$Mljw6FO84rubBsGfvHCJbuFHrw12hBKDYTkmn1dTQqAm2yXUb89Qq', // viu12345
+                ],
+            ];
         }
 
         // Map ISO -> id once
