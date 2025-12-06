@@ -12,15 +12,47 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $ph = Country::where('iso_code', 'PH')->first();
-        $user = User::updateOrCreate(
-            ['username' => 'adminalea'],
+
+        $users = [
             [
+                'username' => 'superadminaleaa',
+                'role' => 'superadmin',
                 'name' => 'Admin Alea',
-                'optional_name' => null,
                 'email' => 'adminalea@viu.com',
                 'country_id' => $ph?->id,
-                'password' => Hash::make('alea1234'),
-            ]
-        );
+                'password' => Hash::make('alea12345'),
+            ],
+            [
+                'username' => 'admineya',
+                'role' => 'admin',
+                'name' => 'admineya',
+                'email' => 'admineya@local.viu',
+                'country_id' => $ph?->id,
+                'password' => Hash::make('eya12345'),
+            ],
+            [
+                'username' => 'adminwinx',
+                'role' => 'admin',
+                'name' => 'adminwinx',
+                'email' => 'adminwinx@local.viu',
+                'country_id' => $ph?->id,
+                'password' => Hash::make('winx12345'),
+            ],
+            [
+                'username' => 'adminviu',
+                'role' => 'admin',
+                'name' => 'adminviu',
+                'email' => 'adminviu@local.viu',
+                'country_id' => $ph?->id,
+                'password' => Hash::make('viu12345'),
+            ],
+        ];
+
+        foreach ($users as $data) {
+            User::updateOrCreate(
+                ['username' => $data['username']],
+                $data
+            );
+        }
     }
 }
