@@ -22,7 +22,13 @@ class AdminUserSeeder extends Seeder
             Log::warning('AdminUserSeeder: Missing SUPERADMIN_PASSWORD or DEFAULT_ADMIN_PASSWORD in .env. Generating temporary random passwords.');
             $superadminPassword = $superadminPassword ?: Str::random(16);
             $defaultAdminPassword = $defaultAdminPassword ?: Str::random(16);
-            Log::warning('AdminUserSeeder: Generated passwords (store securely, rotate in production): superadmin=' . $superadminPassword . ', admin=' . $defaultAdminPassword);
+            // Output to console when running seeder so developers can see the generated passwords immediately.
+            if (property_exists($this, 'command') && $this->command) {
+                $this->command->warn('AdminUserSeeder: Generated temporary passwords');
+                $this->command->line('  superadmin: ' . $superadminPassword);
+                $this->command->line('  admin:      ' . $defaultAdminPassword);
+            }
+            Log::warning('AdminUserSeeder: Generated passwords (store securely, rotate in production).');
         }
 
         $users = [
