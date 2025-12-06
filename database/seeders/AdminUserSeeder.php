@@ -6,12 +6,24 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Country;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
         $ph = Country::where('iso_code', 'PH')->first();
+
+        $superadminPassword = env('SUPERADMIN_PASSWORD');
+        $defaultAdminPassword = env('DEFAULT_ADMIN_PASSWORD');
+
+        if (!$superadminPassword || !$defaultAdminPassword) {
+            Log::warning('AdminUserSeeder: Missing SUPERADMIN_PASSWORD or DEFAULT_ADMIN_PASSWORD in .env. Generating temporary random passwords.');
+            $superadminPassword = $superadminPassword ?: Str::random(16);
+            $defaultAdminPassword = $defaultAdminPassword ?: Str::random(16);
+            Log::warning('AdminUserSeeder: Generated passwords (store securely, rotate in production): superadmin=' . $superadminPassword . ', admin=' . $defaultAdminPassword);
+        }
 
         $users = [
             [
@@ -20,7 +32,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'Admin Alea',
                 'email' => 'adminalea@viu.com',
                 'country_id' => $ph?->id,
-                'password' => Hash::make('alea12345'),
+                'password' => Hash::make($superadminPassword),
             ],
             [
                 'username' => 'admineya',
@@ -28,7 +40,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'admineya',
                 'email' => 'admineya@local.viu',
                 'country_id' => $ph?->id,
-                'password' => Hash::make('eya12345'),
+                'password' => Hash::make($defaultAdminPassword),
             ],
             [
                 'username' => 'adminwinx',
@@ -36,7 +48,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'adminwinx',
                 'email' => 'adminwinx@local.viu',
                 'country_id' => $ph?->id,
-                'password' => Hash::make('winx12345'),
+                'password' => Hash::make($defaultAdminPassword),
             ],
             [
                 'username' => 'adminviu',
@@ -44,7 +56,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'adminviu',
                 'email' => 'adminviu@local.viu',
                 'country_id' => $ph?->id,
-                'password' => Hash::make('viu12345'),
+                'password' => Hash::make($defaultAdminPassword),
             ],
         ];
 
