@@ -1,13 +1,14 @@
 # Production Dockerfile for Laravel on Render using Apache
 FROM php:8.2-apache
 
-# Install system deps
+# Install system deps and PHP extensions
 RUN apt-get update \
     && apt-get install -y \
        libzip-dev zip unzip git \
-       libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip mbstring exif pcntl bcmath \
-    && a2enmod rewrite
+       libpng-dev libonig-dev libxml2-dev libicu-dev \
+    && docker-php-ext-install pdo_mysql zip mbstring exif pcntl bcmath intl gd \
+    && a2enmod rewrite \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set working dir
 WORKDIR /var/www/html
