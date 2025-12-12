@@ -15,23 +15,14 @@ class ChatbotController extends Controller
 {
     public function ask(Request $request)
     {
-        // TEMPORARY: Return friendly response without AI service to avoid 500 errors
-        try {
-            $conversationId = $request->input('conversation_id') ?? 'chat-' . time();
-            
-            return response()->json([
-                'success' => true,
-                'data' => ['answer' => 'Hello, Viu Fam! 👋 Our AI assistant is taking a quick break. While you wait, feel free to take our 3-5 minute survey to share your feedback! 😊'],
-                'conversation_id' => $conversationId
-            ], 200);
-        } catch (\Throwable $e) {
-            Log::error('Chatbot fallback error', ['error' => $e->getMessage()]);
-            return response()->json([
-                'success' => true,
-                'data' => ['answer' => 'Hello! Our assistant is temporarily unavailable. Please try the survey! 😊'],
-                'conversation_id' => 'chat-' . time()
-            ], 200);
-        }
+        // Ultra-simple test: return immediate JSON response
+        Log::info('Chatbot controller reached', ['ip' => $request->ip()]);
+        
+        return response()->json([
+            'success' => true,
+            'data' => ['answer' => 'Hello, Viu Fam! 👋 Our AI assistant is taking a quick break. While you wait, feel free to take our 3-5 minute survey to share your feedback! 😊'],
+            'conversation_id' => 'chat-' . time()
+        ], 200);
     }
     
     // ORIGINAL METHOD DISABLED TO PREVENT 500s - RE-ENABLE AFTER INVESTIGATION

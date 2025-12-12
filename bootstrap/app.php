@@ -24,5 +24,23 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', [\App\Http\Middleware\SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $e, $request) {
+            if ($request->is('api/*')) {
+                \Illuminate\Support\Facades\Log::error('API Exception caught', [
+                    'path' => $request->path(),
+                    'method' => $request->method(),
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Server error',
+                    'details' => config('app.debug') ? $e->getMessage() : 'Please try again later',
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                ], 500);
+            }
+        });
     })->create();
