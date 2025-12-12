@@ -18,15 +18,12 @@ ENV APP_KEY=base64:dGVtcG9yYXJ5a2V5Zm9yYnVpbGR0aW1lb25seQ==
 # Copy composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy only composer manifests first to leverage Docker layer caching
-COPY composer.json composer.lock /var/www/html/
+# Copy the rest of the application source first
+COPY . /var/www/html
 
-# Install PHP dependencies early so vendor exists at runtime
+# Install PHP dependencies (now that full source is present)
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts && \
     composer dump-autoload --optimize
-
-# Copy the rest of the application source
-COPY . /var/www/html
 
 # Set Apache document root to public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
