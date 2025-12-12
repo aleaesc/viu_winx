@@ -673,6 +673,8 @@
                 } catch(e) {}
             }
             
+            
+            
             async function send(text) {
                 // Reset inactivity timer
                 resetInactivityTimer();
@@ -702,48 +704,33 @@
                 br.appendChild(bb);
                 body.appendChild(br);
                 body.scrollTop = body.scrollHeight;
-                
                 try {
-                    // Use persistent conversation ID for entire session
                     if (!chatState.conversationId) {
                         chatState.conversationId = 'chat-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                     }
                     const res = await fetch('/api/chatbot/ask', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             question: text,
                             conversation_id: chatState.conversationId
                         })
                     });
-                    
                     if (!res.ok) {
-                        throw new Error(`HTTP ${res.status}`);
+                        if(body.contains(br)) body.removeChild(br);
+                        addBotMessage('API connection issue (' + res.status + '). Try refreshing? 😭', Date.now(), []);
+                        body.scrollTop = body.scrollHeight;
+                        return;
                     }
-                    
                     const data = await res.json();
-                    
-                    // Store conversation ID
-                    if(data.conversation_id) {
-                        chatState.conversationId = data.conversation_id;
-                    }
-                    
-                    // Remove typing indicator
+                    if(data.conversation_id) chatState.conversationId = data.conversation_id;
                     if(body.contains(br)) body.removeChild(br);
-                    
-                    // Add bot response from API
                     const response = data.data?.answer || data.answer || 'Sorry, no response';
                     addBotMessage(response, Date.now(), []);
                 } catch (err) {
-                    console.error('API Error:', err);
-                    // Remove typing indicator
                     if(body.contains(br)) body.removeChild(br);
-                    // Show error message with proper emoji
-                    addBotMessage('Bestie, may konting connection issue. Paki-try ulit? 🥺', Date.now(), []);
+                    addBotMessage('API connection issue (network). Try refreshing? 😭', Date.now(), []);
                 }
-                
                 body.scrollTop = body.scrollHeight;
             }
             sendBtn.addEventListener('click', () => { const t = (input.value||'').trim(); if(!t) return; input.value=''; send(t); });
@@ -770,15 +757,13 @@
                     if (res.ok) {
                         const data = await res.json();
                         if(data.conversation_id) chatState.conversationId = data.conversation_id;
-                        const greeting = data.data?.answer || data.answer || 'Hello! ðŸ‘‹';
+                        const greeting = data.data?.answer || data.answer || 'Hello! 👋';
                         addBotMessage(greeting, Date.now(), []);
                     } else {
-                        // API failed - show error
                         addBotMessage('API connection issue (' + res.status + '). Try refreshing? 😭', Date.now(), []);
                     }
                 } catch(e) {
-                    console.error('Init greeting failed:', e);
-                    addBotMessage('Cannot connect to AI. Error: ' + e.message, Date.now(), []);
+                    addBotMessage('API connection issue (network). Try refreshing? 😭', Date.now(), []);
                 }
             }
             

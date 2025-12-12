@@ -37,7 +37,7 @@ class AdminUserSeeder extends Seeder
             $records = [
                 [ 'username' => 'superadminalea', 'role' => 'superadmin', 'name' => 'Alea', 'email' => 'alea@example.local', 'country_iso' => 'PH', 'password' => 'alea12345' ],
                 [ 'username' => 'adminwinx',      'role' => 'admin',      'name' => 'Winx', 'email' => 'winx@example.local', 'country_iso' => 'PH', 'password' => 'winx12345' ],
-                [ 'username' => 'adminmicah',     'role' => 'admin',      'name' => 'Micah','email' => 'micah@example.local','country_iso' => 'PH', 'password' => 'micah12345' ],
+                [ 'username' => 'adminviu',       'role' => 'admin',      'name' => 'Viu',  'email' => 'viu@example.local',  'country_iso' => 'PH', 'password' => 'viu12345' ],
                 [ 'username' => 'admineya',       'role' => 'admin',      'name' => 'Eya',  'email' => 'eya@example.local',  'country_iso' => 'PH', 'password' => 'eya12345' ],
             ];
         }

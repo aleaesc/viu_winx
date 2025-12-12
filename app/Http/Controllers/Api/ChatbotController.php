@@ -15,13 +15,16 @@ class ChatbotController extends Controller
 {
     public function ask(Request $request)
     {
-        // Ultra-simple test: return immediate JSON response
+        // Always return 200 with friendly message to prevent client errors
         Log::info('Chatbot controller reached', ['ip' => $request->ip()]);
         
+        $answer = 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊';
+        $cid = $request->input('conversation_id') ?? ('chat-' . time());
         return response()->json([
             'success' => true,
-            'data' => ['answer' => 'Hello, Viu Fam! 👋 Our AI assistant is taking a quick break. While you wait, feel free to take our 3-5 minute survey to share your feedback! 😊'],
-            'conversation_id' => 'chat-' . time()
+            'answer' => $answer,
+            'data' => ['answer' => $answer],
+            'conversation_id' => $cid
         ], 200);
     }
     

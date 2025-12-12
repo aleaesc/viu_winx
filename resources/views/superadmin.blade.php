@@ -1649,7 +1649,10 @@
 
         async function loadAdminAccounts() {
             const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if(!token) return;
+            if(!token) {
+                showToast('error', 'No authentication token found. Please login again.');
+                return;
+            }
 
             try {
                 const res = await fetch('/api/superadmin/admins', {
@@ -1662,9 +1665,13 @@
                 if(res.ok) {
                     adminAccounts = await res.json();
                     renderAdminAccountsList();
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    showToast('error', errData.message || ('Error loading admins: ' + res.status));
                 }
             } catch(e) {
                 console.error('Failed to load admin accounts:', e);
+                showToast('error', 'Network error loading admin accounts');
             }
         }
 

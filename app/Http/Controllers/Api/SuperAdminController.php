@@ -15,8 +15,22 @@ class SuperAdminController extends Controller
      */
     public function index(Request $request)
     {
+        \Log::info('SuperAdmin Index - Entry', ['has_request' => isset($request)]);
+        
         try {
-            $user = $request->user();
+            $user = null;
+            try {
+                $user = $request->user();
+            } catch (\Throwable $authEx) {
+                \Log::error('SuperAdmin Index - Auth Error:', [
+                    'error' => $authEx->getMessage(),
+                    'trace' => $authEx->getTraceAsString()
+                ]);
+                return response()->json([
+                    'message' => 'Authentication failed',
+                    'error' => config('app.debug') ? $authEx->getMessage() : 'Auth error'
+                ], 401);
+            }
             
             // Debug logging
             \Log::info('SuperAdmin Index - User:', [
@@ -29,7 +43,7 @@ class SuperAdminController extends Controller
             // Only superadmin can access this
             if (!$user || $user->role !== 'superadmin') {
                 return response()->json([
-                    'message' => 'Unauthorized',
+                    'message' => 'Unauthorized - superadmin role required',
                     'debug' => [
                         'has_user' => (bool)$user,
                         'user_role' => $user ? $user->role : null,
@@ -43,6 +57,7 @@ class SuperAdminController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            \Log::info('SuperAdmin Index - Success', ['count' => $admins->count()]);
             return response()->json($admins);
         } catch (\Throwable $e) {
             \Log::error('SuperAdmin Index Error:', [
@@ -63,8 +78,21 @@ class SuperAdminController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('SuperAdmin Store - Entry');
+        
         try {
-            $user = $request->user();
+            $user = null;
+            try {
+                $user = $request->user();
+            } catch (\Throwable $authEx) {
+                \Log::error('SuperAdmin Store - Auth Error:', [
+                    'error' => $authEx->getMessage()
+                ]);
+                return response()->json([
+                    'message' => 'Authentication failed',
+                    'error' => config('app.debug') ? $authEx->getMessage() : 'Auth error'
+                ], 401);
+            }
             
             // Debug logging
             \Log::info('SuperAdmin Store - User:', [
@@ -76,7 +104,7 @@ class SuperAdminController extends Controller
             // Only superadmin can create admins
             if (!$user || $user->role !== 'superadmin') {
                 return response()->json([
-                    'message' => 'Unauthorized',
+                    'message' => 'Unauthorized - superadmin role required',
                     'debug' => [
                         'has_user' => (bool)$user,
                         'user_role' => $user ? $user->role : null,
