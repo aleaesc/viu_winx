@@ -1546,7 +1546,7 @@
             // Fallback placeholders if stats not yet loaded - will be replaced by real data
             renderChartsFromStats({ questions: [
                 { title:'Content', avg_rating:3.2 }, { title:'Quality', avg_rating:4.1 }, { title:'Search', avg_rating:3.8 }, { title:'Subtitles', avg_rating:3.6 }, { title:'Performance', avg_rating:2.9 }, { title:'Value', avg_rating:4.0 }
-            ], overall_distribution: { counts: {} } });
+            ], overall_distribution: { counts: { '1': 2, '2': 5, '3': 8, '4': 15, '5': 20 } } });
         }
 
         // ==================== SETTINGS SUBMIT ====================
