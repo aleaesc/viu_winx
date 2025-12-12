@@ -18,25 +18,27 @@ class ChatbotController extends Controller
         // Rate limiting: Max 20 requests per minute per IP
         $identifier = $request->ip() . '_chatbot';
         $rateLimit = Cache::get($identifier, 0);
-        
+
         if ($rateLimit >= 20) {
             return response()->json([
                 'success' => false,
                 'error' => 'Hello, Viu Fam! Please slow down a bit. You can ask again in a moment. 😊'
             ], 429);
         }
-        
+
         Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
-        
-        $request->validate([
-            'question' => 'required_without:message|string|max:500|regex:/^[\p{L}\p{N}\p{P}\s]+$/u',
-            'message' => 'required_without:question|string|max:500|regex:/^[\p{L}\p{N}\p{P}\s]+$/u',
-            'conversation_id' => 'nullable|string|max:255|alpha_dash'
-        ]);
-        
-        // Sanitize input (remove potential XSS) - accept both 'question' and 'message'
-        $question = strip_tags($request->input('question') ?? $request->input('message'));
-        $question = htmlspecialchars($question, ENT_QUOTES, 'UTF-8');
+
+        try {
+            // Validate more permissively (allow emojis and international scripts)
+            $request->validate([
+                'question' => 'required_without:message|string|max:500',
+                'message' => 'required_without:question|string|max:500',
+                'conversation_id' => 'nullable|string|max:255'
+            ]);
+
+            // Sanitize input (remove potential XSS) - accept both 'question' and 'message'
+            $question = strip_tags($request->input('question') ?? $request->input('message'));
+            $question = htmlspecialchars($question, ENT_QUOTES, 'UTF-8');
         
         // Profanity filter
         $profanities = ['putang', 'gago', 'tangina', 'fuck', 'shit', 'bitch', 'asshole', 'tite','inamo', 'putanginamo', 'tanginamo'];
@@ -51,14 +53,19 @@ class ChatbotController extends Controller
             }
         }
 
-        $conversationId = $request->input('conversation_id') ?? 
-                         'chat-' . $request->ip() . '-' . time() . '-' . Str::random(8);
+            $conversationId = $request->input('conversation_id') ?? 
+                             'chat-' . $request->ip() . '-' . time() . '-' . Str::random(8);
 
-        try {
             $answer = $chatService->chat(
                 $question,
                 $conversationId
             );
+
+            return response()->json([
+                'success' => true,
+                'data' => ['answer' => $answer],
+                'conversation_id' => $conversationId
+            ], 200);
 
             return response()->json([
                 'success' => true,
@@ -77,7 +84,7 @@ class ChatbotController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊'],
-                'conversation_id' => $conversationId
+                'conversation_id' => $conversationId ?? ('chat-' . time())
             ], 200);
         }
     }
