@@ -1,3 +1,30 @@
+# Laravel Cloud/Vapor configuration
+# This file prepares the app for production deploys.
+
+name: viu-winx
+environments:
+    production:
+        memory: 1024
+        runtime: php-8.2
+        cli:
+            runtime: php-8.2
+        build:
+            - 'composer install --no-dev --prefer-dist'
+            - 'php artisan config:cache'
+            - 'php artisan route:cache'
+            - 'php artisan view:cache'
+        deploy:
+            # Run migrations on each deploy to ensure schema and admin seeding
+            - 'php artisan migrate --force'
+        database: mysql
+        # Uncomment and adjust if you add queues
+        # queues:
+        #   - connection: redis
+        #     queue: default
+        #     processes: 1
+        # cache: redis
+        # storage: s3
+
 id: viu-winx
 name: viu-winx
 environments:

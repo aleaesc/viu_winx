@@ -1,16 +1,19 @@
 # VIU WinX Deployment Guide
 
 ## Prerequisites
-- Laravel Cloud account (https://cloud.laravel.com - includes Vapor serverless) **OR** Ubuntu VPS + Aiven MySQL
-- Domain name with DNS access
+
+-   Laravel Cloud account (https://cloud.laravel.com - includes Vapor serverless) **OR** Ubuntu VPS + Aiven MySQL
+-   Domain name with DNS access
 
 ## Option 1: Laravel Cloud (Serverless AWS via Vapor)
 
 ### 1. Sign up for Laravel Cloud
-- Visit https://cloud.laravel.com and create an account
-- Add a payment method and create a team
+
+-   Visit https://cloud.laravel.com and create an account
+-   Add a payment method and create a team
 
 ### 2. Install and authenticate Vapor CLI
+
 ```powershell
 composer global require laravel/vapor-cli
 $env:PATH += ";$env:APPDATA\Composer\vendor\bin"
@@ -18,6 +21,7 @@ vapor login
 ```
 
 ### 3. Initialize and configure
+
 ```powershell
 # The vapor.yml is already created in the repo
 # Review and adjust if needed
@@ -25,11 +29,13 @@ vapor init
 ```
 
 ### 4. Create production environment
+
 ```powershell
 vapor env production
 ```
 
 ### 5. Set environment secrets (required)
+
 ```powershell
 # Generate a new production key
 php artisan key:generate --show
@@ -47,45 +53,53 @@ vapor secrets production GEMINI_API_KEY="your-key-here"
 ```
 
 ### 6. Deploy
+
 ```powershell
 vapor deploy production
 ```
 
 ### 7. Run migrations (auto-seeds admins)
+
 ```powershell
 vapor artisan production migrate
 ```
 
 ### 8. Configure domain
-- In Vapor dashboard: Environments → production → Domain
-- Add your domain and enable SSL
-- Update DNS to point to Vapor's CNAME
+
+-   In Vapor dashboard: Environments → production → Domain
+-   Add your domain and enable SSL
+-   Update DNS to point to Vapor's CNAME
 
 ### 9. Verify deployment
+
 Visit: `https://yourdomain.com/admin`
 
 Login with seeded accounts:
-- `superadminaleaa` / `alea12345`
-- `admineya` / `eya12345`
-- `adminwinx` / `winx12345`
-- `adminviu` / `viu12345`
+
+-   `superadminaleaa` / `alea12345`
+-   `admineya` / `eya12345`
+-   `adminwinx` / `winx12345`
+-   `adminviu` / `viu12345`
 
 ---
 
 ## Option 2: VPS + Aiven MySQL
 
 ### 1. Create Aiven MySQL service
-- Sign up at https://aiven.io
-- Create a MySQL service (choose free tier or paid plan)
-- Note: `HOST`, `PORT`, `DATABASE`, `USERNAME`, `PASSWORD`
-- Download CA certificate if SSL is required
+
+-   Sign up at https://aiven.io
+-   Create a MySQL service (choose free tier or paid plan)
+-   Note: `HOST`, `PORT`, `DATABASE`, `USERNAME`, `PASSWORD`
+-   Download CA certificate if SSL is required
 
 ### 2. Provision Ubuntu server
-- Use DigitalOcean, AWS EC2, or similar
-- Ubuntu 22.04 LTS recommended
-- Open ports 80, 443, and 22
+
+-   Use DigitalOcean, AWS EC2, or similar
+-   Ubuntu 22.04 LTS recommended
+-   Open ports 80, 443, and 22
 
 ### 3. SSH to server and install stack
+
 ```bash
 sudo apt update
 sudo apt install -y nginx php8.2-fpm php8.2-mysql php8.2-xml php8.2-mbstring php8.2-zip php8.2-curl unzip git
@@ -96,6 +110,7 @@ sudo mv composer.phar /usr/local/bin/composer
 ```
 
 ### 4. Deploy application
+
 ```bash
 sudo mkdir -p /var/www/viu_winx
 sudo chown $USER:$USER /var/www/viu_winx
@@ -109,12 +124,15 @@ php artisan key:generate
 ```
 
 ### 5. Configure .env with Aiven
+
 Edit `/var/www/viu_winx/.env`:
+
 ```bash
 nano .env
 ```
 
 Update these values:
+
 ```env
 APP_ENV=production
 APP_DEBUG=false
@@ -133,6 +151,7 @@ GEMINI_API_KEY=your-key
 ```
 
 ### 6. Set permissions
+
 ```bash
 sudo chown -R www-data:www-data /var/www/viu_winx/storage
 sudo chown -R www-data:www-data /var/www/viu_winx/bootstrap/cache
@@ -141,6 +160,7 @@ sudo chmod -R 775 /var/www/viu_winx/bootstrap/cache
 ```
 
 ### 7. Configure Nginx
+
 ```bash
 sudo cp /var/www/viu_winx/nginx-viu-winx.conf /etc/nginx/sites-available/viu-winx
 # Edit and replace 'yourdomain.com' with your actual domain
@@ -153,6 +173,7 @@ sudo systemctl restart php8.2-fpm
 ```
 
 ### 8. Run migrations (auto-seeds admins)
+
 ```bash
 cd /var/www/viu_winx
 php artisan migrate
@@ -162,12 +183,14 @@ php artisan view:cache
 ```
 
 ### 9. Install SSL with Certbot
+
 ```bash
 sudo snap install --classic certbot
 sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ```
 
 ### 10. Verify deployment
+
 Visit: `https://yourdomain.com/admin`
 
 Login with seeded accounts (same as Vapor)
@@ -175,37 +198,41 @@ Login with seeded accounts (same as Vapor)
 ---
 
 ## Admin Credentials (Auto-seeded)
+
 These accounts are automatically created when you run migrations:
 
-| Username | Password | Role | Email |
-|----------|----------|------|-------|
-| superadminaleaa | alea12345 | superadmin | adminalea@viu.com |
-| admineya | eya12345 | admin | admineya@local.viu |
-| adminwinx | winx12345 | admin | adminwinx@local.viu |
-| adminviu | viu12345 | admin | adminviu@local.viu |
+| Username        | Password  | Role       | Email               |
+| --------------- | --------- | ---------- | ------------------- |
+| superadminaleaa | alea12345 | superadmin | adminalea@viu.com   |
+| admineya        | eya12345  | admin      | admineya@local.viu  |
+| adminwinx       | winx12345 | admin      | adminwinx@local.viu |
+| adminviu        | viu12345  | admin      | adminviu@local.viu  |
 
 **Important**: Change these passwords immediately after first login using the admin settings panel.
 
 ---
 
 ## Security Notes
-- Never commit `.env` or API keys to Git
-- For Vapor: use `vapor secrets` command
-- For VPS: keep `.env` on server only
-- Rotate admin passwords post-deployment
-- Keep `APP_DEBUG=false` in production
-- Regular backups of database
+
+-   Never commit `.env` or API keys to Git
+-   For Vapor: use `vapor secrets` command
+-   For VPS: keep `.env` on server only
+-   Rotate admin passwords post-deployment
+-   Keep `APP_DEBUG=false` in production
+-   Regular backups of database
 
 ---
 
 ## Troubleshooting
 
 ### Vapor deployment fails
+
 ```powershell
 vapor deploy production --debug
 ```
 
 ### VPS migration fails
+
 ```bash
 # Check database connection
 php artisan tinker
@@ -216,6 +243,7 @@ tail -f storage/logs/laravel.log
 ```
 
 ### Admin login doesn't work
+
 ```bash
 # Re-run migration (idempotent)
 php artisan migrate

@@ -1,0 +1,32 @@
+/* Global responsive adjustments without breaking existing styles */
+html, body { -webkit-text-size-adjust: 100%; }
+
+.container, .chatbot-container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+/* Chatbot */
+.chatbot-messages { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.chatbot-input-row { display: flex; gap: 8px; }
+.chatbot-input-row input[type="text"],
+.chatbot-input-row textarea { flex: 1 1 auto; min-width: 0; }
+.chatbot-input-row button { flex: 0 0 auto; }
+.message-bubble { max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; }
+
+/* Toasts */
+.toast { max-width: 100%; box-sizing: border-box; }
+.toast-container { padding: 0 12px; }
+
+@media (max-width: 768px) {
+  .container, .chatbot-container { padding: 0 12px; }
+  .chatbot-input-row { flex-direction: column; }
+  .chatbot-input-row button { width: 100%; }
+  .message-bubble { font-size: 0.95rem; line-height: 1.4; }
+}
+
+@media (max-width: 480px) {
+  .container, .chatbot-container { padding: 0 10px; }
+  .chatbot-input-row { gap: 6px; }
+  .chatbot-input-row input[type="text"],
+  .chatbot-input-row textarea { font-size: 16px; padding: 10px; }
+  .chatbot-input-row button { padding: 12px; min-height: 44px; }
+  .toast { font-size: 0.95rem; }
+}
