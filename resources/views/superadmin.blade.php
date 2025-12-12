@@ -517,7 +517,7 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div><p class="stat-label">Most Active Location</p><div class="text-lg font-bold text-black flex items-baseline gap-1">PHILIPPINES <span class="text-gray-400 font-normal text-sm">(Simulated)</span></div></div>
+                        <div><p class="stat-label">Most Active Location</p><div class="text-lg font-bold text-black flex items-baseline gap-1">PHILIPPINES</div></div>
                         <div><p class="stat-label">Area for Improvement</p><div class="text-lg font-bold text-black flex items-baseline gap-1">APP PERFORMANCE <span class="text-gray-400 font-normal text-sm">(2.5)</span></div></div>
                         <div><p class="stat-label">User Sentiment</p><div class="text-lg font-bold text-green-500">Good</div></div>
                     </div>
@@ -548,7 +548,7 @@
             <div id="view-answers" class="hidden-page fade-in">
                 <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">Survey Answers (Responses)</h2></header>
                 <div class="flex items-center gap-3 mb-3 text-xs text-gray-500">
-                    <span id="local-debug-count">Local submissions: 0</span>
+                    <span id="local-debug-count" style="display:none;">Local submissions: 0</span>
                 </div>
                 <div class="flex flex-col lg:flex-row gap-4 mb-6">
                     <div class="flex-grow"><input type="text" id="superadminSearchInput" placeholder="Search by location, email, or services..." class="input-filter" oninput="superadminFilterTable()" /></div>
@@ -608,7 +608,7 @@
             <div id="view-suggestions" class="hidden-page fade-in">
                 <header class="mb-8"><h2 class="text-4xl font-extrabold text-black">User Suggestions & Comments</h2></header>
                 <div class="flex items-center gap-3 mb-3 text-xs text-gray-500">
-                    <span id="local-debug-count-s">Local submissions: 0</span>
+                    <span id="local-debug-count-s" style="display:none;">Local submissions: 0</span>
                 </div>
                 <!-- Tabs for Active/Archived -->
                 <div class="flex gap-2 mb-6">
