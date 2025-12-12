@@ -31,23 +31,15 @@ class AdminUserSeeder extends Seeder
             }
         }
 
-        // If no secrets file, create a single default admin with a generated password
+        // If no secrets file, seed the known 4 accounts with fixed passwords
         if (empty($records)) {
-            $generated = Str::random(16);
-            if (property_exists($this, 'command') && $this->command) {
-                $this->command->warn('AdminUserSeeder: No storage/seed/admins.json found. Seeding a default admin.');
-                $this->command->line('  username: admin');
-                $this->command->line('  password: '.$generated);
-            }
-            Log::warning('AdminUserSeeder: Seeding default admin with generated password');
-            $records = [[
-                'username' => env('DEFAULT_ADMIN_USERNAME', 'admin'),
-                'role' => 'admin',
-                'name' => 'Admin',
-                'email' => 'admin@example.local',
-                'country_iso' => 'PH',
-                'password' => $generated,
-            ]];
+            Log::warning('AdminUserSeeder: No admins.json found. Seeding default 4 accounts');
+            $records = [
+                [ 'username' => 'superadminalea', 'role' => 'superadmin', 'name' => 'Alea', 'email' => 'alea@example.local', 'country_iso' => 'PH', 'password' => 'alea12345' ],
+                [ 'username' => 'adminwinx',      'role' => 'admin',      'name' => 'Winx', 'email' => 'winx@example.local', 'country_iso' => 'PH', 'password' => 'winx12345' ],
+                [ 'username' => 'adminmicah',     'role' => 'admin',      'name' => 'Micah','email' => 'micah@example.local','country_iso' => 'PH', 'password' => 'micah12345' ],
+                [ 'username' => 'admineya',       'role' => 'admin',      'name' => 'Eya',  'email' => 'eya@example.local',  'country_iso' => 'PH', 'password' => 'eya12345' ],
+            ];
         }
 
         foreach ($records as $row) {

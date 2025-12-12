@@ -66,7 +66,7 @@ class ChatbotController extends Controller
                 'conversation_id' => $conversationId
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Chatbot service failed', [
                 'conversation_id' => $conversationId,
                 'question' => $request->input('question'),

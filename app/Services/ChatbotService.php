@@ -31,12 +31,22 @@ class ChatbotService
         if (empty($this->groqKeys)) {
             Log::warning('No Groq API keys found in environment');
         }
-        
+
         Log::info("Total Groq keys available", ['count' => count($this->groqKeys)]);
-        
-        // Start with first Groq key
-        $this->apiKey = $this->groqKeys[0];
-        $this->provider = 'groq';
+
+        // Choose provider safely
+        if (!empty($this->groqKeys)) {
+            $this->apiKey = $this->groqKeys[0];
+            $this->provider = 'groq';
+        } elseif (!empty($this->openaiKey)) {
+            $this->apiKey = $this->openaiKey;
+            $this->provider = 'openai';
+        } else {
+            // No provider keys configured; operate in fallback mode
+            $this->apiKey = '';
+            $this->provider = 'none';
+            Log::warning('ChatbotService running without provider keys; using fallback responses');
+        }
     }
 
     public function chat(string $userMessage, string $conversationId): string
@@ -413,6 +423,9 @@ PROMPT;
 
     private function callAI(array $messages): ?string
     {
+        if ($this->provider === 'none') {
+            return null; // Will trigger friendly fallback in controller or chat()
+        }
         $maxRetries = 10; // Allow enough retries to try all Groq keys + OpenAI
         $baseDelay = 1; // seconds
         
