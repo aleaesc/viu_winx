@@ -15,17 +15,27 @@ class ChatbotController extends Controller
 {
     public function ask(Request $request)
     {
+        // Outer try-catch to prevent any 500s
         try {
             // Rate limiting: Max 20 requests per minute per IP
             $identifier = $request->ip() . '_chatbot';
-            $rateLimit = Cache::get($identifier, 0);
+            $rateLimit = 0;
+            try {
+                $rateLimit = Cache::get($identifier, 0);
+            } catch (\Throwable $ce) {
+                // Cache might fail; continue
+            }
             if ($rateLimit >= 20) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Hello, Viu Fam! Please slow down a bit. You can ask again in a moment. 😊'
                 ], 429);
             }
-            Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
+            try {
+                Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
+            } catch (\Throwable $ce) {
+                // Cache might fail; continue
+            }
 
             // Validation (permissive and resilient)
             try {
