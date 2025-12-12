@@ -679,7 +679,7 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 // Backend listing endpoints not yet implemented; use public responses endpoint as fallback
-                let urlResp = '{{ url('/api/public/responses') }}';
+                let urlResp = '/api/public/responses';
                 if(range && range!=='all'){ urlResp += ('?range='+range); }
                 let usedBackend = false;
                 let rRes = await fetch(urlResp, { headers: { 'Accept':'application/json' }, method: 'GET' }).catch(() => null);
@@ -1099,7 +1099,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const res = await fetch(`{{ url('/api/public/responses') }}/${id}`, {
+                const res = await fetch(`/api/public/responses/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
@@ -1461,7 +1461,7 @@
             }
 
             try {
-                const res = await fetch('{{ url('/api/admin/settings') }}', {
+                const res = await fetch('/api/admin/settings', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1511,7 +1511,7 @@
         async function loadStats(range){
             try {
                 const token = localStorage.getItem('auth_token');
-                let urlStats = '{{ url('/api/admin/stats') }}';
+                let urlStats = '/api/admin/stats';
                 if(range && range !== 'all') urlStats += ('?range='+range);
                 const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
                 if (!res.ok) throw new Error('Failed');
@@ -1638,7 +1638,7 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 const range = window.selectedRange || 'all';
-                let urlStats = '{{ url('/api/admin/stats') }}';
+                let urlStats = '/api/admin/stats';
                 if(range && range !== 'all') urlStats += ('?range='+range);
                 const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
                 if (res.ok) {
@@ -1658,7 +1658,7 @@
                         // If no local aggregate yet, fetch public responses and compute inline
                         if(!fallback.length){
                             try{
-                                let urlResp = '{{ url('/api/public/responses') }}';
+                                let urlResp = '/api/public/responses';
                                 const rRes = await fetch(urlResp, { headers: { 'Accept':'application/json' }, method: 'GET' });
                                 if(rRes.ok){
                                     const raw = await rRes.json();
@@ -1724,7 +1724,7 @@
                         let localResp = responses;
                         try{
                             if(!localResp || !localResp.length){
-                                let urlResp = '{{ url('/api/public/responses') }}';
+                                let urlResp = '/api/public/responses';
                                 const rRes = await fetch(urlResp, { headers: { 'Accept':'application/json' }, method: 'GET' });
                                 if(rRes.ok){
                                     const raw = await rRes.json();
@@ -1880,7 +1880,7 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 const range = window.selectedRange || 'all';
-                let urlStats = '{{ url('/api/admin/stats') }}';
+                let urlStats = '/api/admin/stats';
                 if(range && range !== 'all') urlStats += ('?range='+range);
                 const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
                 if (res.ok) {
@@ -1941,7 +1941,7 @@
             try{
                 const token = localStorage.getItem('auth_token');
                 const range = window.selectedRange || 'all';
-                let urlStats = '{{ url('/api/admin/stats') }}';
+                let urlStats = '/api/admin/stats';
                 if(range && range !== 'all') urlStats += ('?range='+range);
                 const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
                 if(res.ok){
