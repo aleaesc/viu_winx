@@ -15,8 +15,27 @@ use App\Http\Controllers\Api\DevAdminResetController;
 use App\Http\Controllers\Api\SuperAdminController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/countries', [CountryController::class, 'index']);
+
+// Lightweight health checks (to debug deploy issues)
+Route::get('/health/db', function () {
+    try {
+        DB::select('SELECT 1');
+        return response()->json(['ok' => true]);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+Route::get('/health/users', function () {
+    try {
+        $count = DB::table('users')->count();
+        return response()->json(['ok' => true, 'users' => $count]);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+});
 
 Route::post('/register', [AuthController::class, 'register'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
