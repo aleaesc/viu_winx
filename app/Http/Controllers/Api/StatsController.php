@@ -138,7 +138,7 @@ class StatsController extends Controller
             ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
             ->selectRaw('COALESCE(rr.question_title, "Untitled") as title, COALESCE(r.service, "Unknown") as service, AVG(rr.rating) as avg_rating');
         if ($fromDate) { $affinityQuery->where('r.submitted_at', '>=', $fromDate); }
-        $affinityRows = $affinityQuery->groupBy('rr.question_title', 'r.service')->get();
+        $affinityRows = $affinityQuery->groupBy(DB::raw('COALESCE(rr.question_title, "Untitled")'), DB::raw('COALESCE(r.service, "Unknown")'))->get();
         $serviceAffinity = [];
         foreach ($affinityRows as $ar) {
             $qtitle = $ar->title;
@@ -187,9 +187,9 @@ class StatsController extends Controller
             // per-question previous averages
             $prevQRows = DB::table('response_ratings as rr')
                 ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
-                ->selectRaw('rr.question_title, AVG(rr.rating) as avg_rating')
+                ->selectRaw('COALESCE(rr.question_title, "Untitled") as question_title, AVG(rr.rating) as avg_rating')
                 ->whereBetween('r.submitted_at', [$prevFrom, $prevTo])
-                ->groupBy('rr.question_title')->get();
+                ->groupBy(DB::raw('COALESCE(rr.question_title, "Untitled")'))->get();
             foreach ($prevQRows as $pqr) { $questionPrevAvgs[$pqr->question_title] = (float)$pqr->avg_rating; }
         }
         // Movement (improvers / decliners)
