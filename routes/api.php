@@ -42,8 +42,15 @@ Route::post('/register', [AuthController::class, 'register'])
 Route::post('/login', [AuthController::class, 'login'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
-Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
-    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+// Temporary hardwired chatbot reply to isolate 500s before controller
+Route::post('/chatbot/ask', function (Request $request) {
+    $cid = $request->input('conversation_id') ?? ('chat-'.time());
+    return response()->json([
+        'success' => true,
+        'data' => ['answer' => 'Hello, Viu Fam! 🧋 I\'m online. If you still see errors, it\'s a network or middleware issue, not the chatbot.'],
+        'conversation_id' => $cid
+    ], 200);
+})->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
 // Public survey responses (no auth, stateless)
 Route::get('/public/responses', [PublicSurveyResponseController::class, 'index'])

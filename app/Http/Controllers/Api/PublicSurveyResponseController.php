@@ -8,6 +8,7 @@ use App\Models\SurveyQuestionVersion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class PublicSurveyResponseController extends Controller
 {
@@ -71,6 +72,31 @@ class PublicSurveyResponseController extends Controller
             'submitted_at' => ['nullable','date'],
         ]);
         $data['submitted_at'] = $data['submitted_at'] ?? now();
+
+        // Idempotency guard: prevent rapid duplicate submissions (e.g., multiple clicks)
+        try {
+            $ratingsForHash = array_map(function($r){
+                return [
+                    'id' => $r['question_id'] ?? null,
+                    'title' => $r['title'] ?? null,
+                    'rating' => $r['rating'] ?? null,
+                ];
+            }, $data['ratings'] ?? []);
+            // Stable hash based on email/ip + ratings + day
+            $idKeyBase = strtolower(trim($data['email'] ?? '')) ?: ('ip:'.$request->ip());
+            $idKey = hash('sha256', json_encode([
+                'k' => $idKeyBase,
+                'r' => $ratingsForHash,
+                'd' => date('Y-m-d', strtotime((string)$data['submitted_at']))
+            ]));
+            $cacheKey = 'idem:survey:'.$idKey;
+            // Only allow first create within 60 seconds; subsequent duplicates return 202
+            if (!Cache::add($cacheKey, '1', 60)) {
+                return response()->json(['message' => 'Duplicate submission ignored'], 202);
+            }
+        } catch (\Throwable $e) {
+            // Do not block if hashing fails; proceed normally
+        }
 
         return DB::transaction(function() use ($data) {
             $resp = PublicSurveyResponse::create($data);

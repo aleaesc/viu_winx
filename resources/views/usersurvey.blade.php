@@ -1044,7 +1044,10 @@
             goToPage('summary-page', 100);
         }
 
+        let isSubmitting = false;
         async function submitSurvey() {
+            if (isSubmitting) { return; }
+            isSubmitting = true;
             console.log('Before sync - selectedGenres:', selectedGenres);
             // Sync Others value one final time before submission
             syncOthersValue();
@@ -1071,9 +1074,11 @@
                 submitted_at: new Date().toISOString()
             };
             try {
+                // Generate idempotency key persisted for the session
+                const idemKey = (sessionStorage.getItem('viu_idem') || (function(){ const k = 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2); sessionStorage.setItem('viu_idem', k); return k; })());
                 const res = await fetch('/api/public/responses', {
                     method: 'POST',
-                    headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+                    headers: { 'Content-Type':'application/json', 'Accept':'application/json', 'X-Idempotency-Key': idemKey },
                     body: JSON.stringify(payload)
                 });
                 if(!res.ok){
@@ -1094,6 +1099,7 @@
                 return;
             }
             goToPage('thank-you-page');
+            isSubmitting = false;
         }
 
         function resetSurvey() {
