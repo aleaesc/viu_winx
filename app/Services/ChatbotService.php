@@ -61,6 +61,17 @@ class ChatbotService
         ]);
     }
 
+    public function getDiagnostics(): array
+    {
+        return [
+            'provider' => $this->provider,
+            'groq_keys' => count($this->groqKeys),
+            'has_openai' => (bool) $this->openaiKey,
+            'has_gemini' => (bool) $this->geminiKey,
+            'timeout' => $this->timeout,
+        ];
+    }
+
     public function chat(string $userMessage, string $conversationId): string
     {
         // Get conversation history

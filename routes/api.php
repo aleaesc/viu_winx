@@ -55,6 +55,17 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
+// Diagnostics: check chatbot provider & health
+Route::get('/chatbot/diag', function () {
+    try {
+        $svc = new \App\Services\ChatbotService();
+        $diag = $svc->getDiagnostics();
+        return response()->json(['ok' => true, 'diag' => $diag], 200);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+})->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+
 // Public survey responses (no auth, stateless)
 Route::get('/public/responses', [PublicSurveyResponseController::class, 'index'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
