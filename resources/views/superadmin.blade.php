@@ -109,7 +109,7 @@
                     { title:'Performance', avg_rating:2.9, count:9 },
                     { title:'Value', avg_rating:4.0, count:5 }
                 ],
-                services: [{service:'General', submissions:10},{service:'KDRAMA', submissions:6}],
+                overall_distribution: { counts: {} },
                 countries: [{country:'Philippines', submissions:8},{country:'Singapore', submissions:4}],
                 trends: [{date:'2025-12-01', submissions:5, avg_rating:3.6},{date:'2025-12-02', submissions:7, avg_rating:3.9}]
             };
@@ -1506,18 +1506,23 @@
                 });
             }
 
-            // Pie: Overall distribution (if provided) else by services share
+            // Pie: Overall distribution (real data from API)
             if(ctxPie){
                 let labels = [];
                 let data = [];
-                if(stats?.overall_distribution){
-                    labels = Object.keys(stats.overall_distribution.counts).map(k=>'Rating '+k);
-                    data = Object.values(stats.overall_distribution.counts);
-                } else if(stats?.services){
-                    labels = stats.services.map(s=>s.service);
-                    data = stats.services.map(s=>s.submissions);
+                if(stats?.overall_distribution && stats.overall_distribution.counts){
+                    const counts = stats.overall_distribution.counts;
+                    labels = Object.keys(counts).map(k=>'Rating '+k);
+                    data = Object.values(counts);
+                    // Filter out zeros for cleaner chart
+                    const filtered = labels.map((l,i) => ({label:l, value:data[i]})).filter(x => x.value > 0);
+                    if(filtered.length > 0){
+                        labels = filtered.map(x => x.label);
+                        data = filtered.map(x => x.value);
+                    }
                 } else {
-                    labels = ['N/A']; data = [1];
+                    // If no real data, show placeholder
+                    labels = ['No data yet']; data = [1];
                 }
                 if(pieChartInstance){ pieChartInstance.destroy(); }
                 pieChartInstance = new Chart(ctxPie, {
@@ -1530,10 +1535,10 @@
             // World map is now rendered in loadStats() function
         }
         function initCharts(){
-            // Fallback placeholders if stats not yet loaded
+            // Fallback placeholders if stats not yet loaded - will be replaced by real data
             renderChartsFromStats({ questions: [
                 { title:'Content', avg_rating:3.2 }, { title:'Quality', avg_rating:4.1 }, { title:'Search', avg_rating:3.8 }, { title:'Subtitles', avg_rating:3.6 }, { title:'Performance', avg_rating:2.9 }, { title:'Value', avg_rating:4.0 }
-            ], services:[{service:'General', submissions:10},{service:'KDRAMA', submissions:6}] });
+            ], overall_distribution: { counts: {} } });
         }
 
         // ==================== SETTINGS SUBMIT ====================

@@ -1368,6 +1368,12 @@
                 } else {
                     labels = ['N/A']; data = [1];
                 }
+                // Filter out zeros for cleaner pie chart
+                const filtered = labels.map((l,i) => ({label:l, value:data[i]})).filter(x => x.value > 0);
+                if(filtered.length > 0){
+                    labels = filtered.map(x => x.label);
+                    data = filtered.map(x => x.value);
+                }
                 if(pieChartInstance){ pieChartInstance.destroy(); }
                 pieChartInstance = new Chart(ctxPie, {
                     type: 'pie',
