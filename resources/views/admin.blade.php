@@ -1141,10 +1141,11 @@
             rows.forEach(row => {
                 const text = row.innerText.toLowerCase();
                 const serviceCell = row.querySelector('.service-cell')?.innerText.toLowerCase() || '';
-                const countryCell = row.querySelector('.location-cell')?.innerText || '';
+                const countryCell = (row.querySelector('.location-cell')?.innerText || '').toLowerCase();
                 let ok = text.includes(searchInput);
                 if(serviceFilter !== 'all') ok = ok && serviceCell === serviceFilter;
-                if(countryFilter !== 'all') ok = ok && countryCell === countryFilter;
+                // Case-insensitive country comparison
+                if(countryFilter !== 'all') ok = ok && countryCell === countryFilter.toLowerCase();
                 row.style.display = ok ? '' : 'none';
             });
             if(rangeFilter && rangeFilter!=='all') { fetchSuperAdminData(rangeFilter); } else { fetchSuperAdminData('all'); }
@@ -1332,21 +1333,22 @@
                 if(!qStats || qStats.length === 0){ qStats = localQuestionStats; }
                 let labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
                 let data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
-                // If labels are all unknown/untitled or a single repeated label, fallback to local aggregation
-                const uniqueLabels = Array.from(new Set(labels.map(l => (l||'Untitled').toString().trim())));
-                const allUnknown = uniqueLabels.length === 1 && ['Untitled','Unknown',''].includes(uniqueLabels[0]);
-                if(allUnknown || uniqueLabels.length === 1){
-                    qStats = localQuestionStats && localQuestionStats.length ? localQuestionStats : qStats;
-                    labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
-                    data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
-                    // If still single bar, seed labels from known questions with zeros to visualize structure
-                    const unique2 = Array.from(new Set(labels.map(l => (l||'Untitled').toString().trim())));
-                    if(unique2.length <= 1 && questions && questions.length){
-                        labels = questions.map(q => q.title);
-                        const avgMap = new Map(qStats.map(q => [q.title, Number(q.avg_rating||q.average||0)]));
+                
+                // Ensure we have valid data to display
+                if(labels.length === 0 || data.every(d => d === 0)){
+                    // Use default questions as fallback structure
+                    if(questions && questions.length){
+                        labels = questions.map(q => q.title || 'Untitled');
+                        // Map any real stats we have
+                        const avgMap = new Map(qStats.map(q => [(q.title||q.question_title), Number(q.avg_rating||q.average||0)]));
                         data = labels.map(t => avgMap.get(t) ?? 0);
+                    } else {
+                        // Ultimate fallback
+                        labels = ['Content', 'Quality', 'Search', 'Subtitles', 'Performance', 'Value'];
+                        data = [0, 0, 0, 0, 0, 0];
                     }
                 }
+                
                 if(barChartInstance){ barChartInstance.destroy(); }
                 barChartInstance = new Chart(ctxBar, {
                     type: 'bar',
