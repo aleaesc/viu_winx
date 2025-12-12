@@ -1331,9 +1331,12 @@
             // Bar: Average Rating per Question
             if(ctxBar){
                 let qStats = (stats?.questions||[]);
+                console.log('Admin bar chart - questions from API:', qStats);
                 if(!qStats || qStats.length === 0){ qStats = localQuestionStats; }
                 let labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
                 let data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
+                console.log('Admin bar chart - labels:', labels);
+                console.log('Admin bar chart - data:', data);
                 
                 // Ensure we have valid data to display
                 if(labels.length === 0 || data.every(d => d === 0)){

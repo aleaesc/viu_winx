@@ -48,6 +48,38 @@ Route::get('/cache/clear', function (Illuminate\Http\Request $request) {
     }
 });
 
+// Database migration check endpoint
+Route::get('/db/check', function (Illuminate\Http\Request $request) {
+    if ($request->query('secret') !== 'viu2025check') {
+        return response()->json(['error' => 'unauthorized'], 403);
+    }
+    try {
+        // Check if question_title column exists
+        $columns = DB::select("SHOW COLUMNS FROM response_ratings");
+        $hasQuestionTitle = collect($columns)->firstWhere('Field', 'question_title');
+        
+        // Sample data
+        $sampleRatings = DB::table('response_ratings')
+            ->select('id', 'question_id', 'question_title', 'rating')
+            ->limit(5)
+            ->get();
+        
+        // Count nulls
+        $nullTitleCount = DB::table('response_ratings')
+            ->whereNull('question_title')
+            ->count();
+        
+        return response()->json([
+            'question_title_column_exists' => (bool)$hasQuestionTitle,
+            'sample_ratings' => $sampleRatings,
+            'null_title_count' => $nullTitleCount,
+            'total_ratings' => DB::table('response_ratings')->count()
+        ], 200);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)
