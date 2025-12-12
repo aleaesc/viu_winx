@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ChatbotController extends Controller
 {
-    public function ask(Request $request, ChatbotService $chatService)
+    public function ask(Request $request)
     {
         try {
             // Rate limiting: Max 20 requests per minute per IP
@@ -59,6 +59,8 @@ class ChatbotController extends Controller
 
             // Try service; if it fails, return friendly fallback (200)
             try {
+                // Construct service inside try so constructor errors are caught
+                $chatService = new ChatbotService();
                 $answer = $chatService->chat($question, $conversationId);
                 $answer = is_string($answer) && strlen(trim($answer)) ? $answer : 'Viu Fam, our assistant is warming up. Try again in a moment 😊';
                 return response()->json([
