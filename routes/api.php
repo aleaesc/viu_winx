@@ -22,6 +22,11 @@ Route::get('/ping', function () {
     return response()->json(['pong' => time()], 200);
 });
 
+// Test POST endpoint
+Route::post('/test-post', function () {
+    return response()->json(['status' => 'POST works', 'time' => time()], 200);
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)
