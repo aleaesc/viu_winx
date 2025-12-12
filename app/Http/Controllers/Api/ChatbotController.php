@@ -73,11 +73,12 @@ class ChatbotController extends Controller
                 'error' => $e->getMessage()
             ]);
 
+            // Return a friendly fallback message instead of 500
             return response()->json([
-                'success' => false,
-                'error' => 'Chat service temporarily unavailable',
+                'success' => true,
+                'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊'],
                 'conversation_id' => $conversationId
-            ], 500);
+            ], 200);
         }
     }
 }
