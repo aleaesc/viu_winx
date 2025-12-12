@@ -18,17 +18,30 @@ class SuperAdminController extends Controller
         \Log::info('SuperAdmin Index - Entry', ['has_request' => isset($request)]);
         
         try {
-            $user = null;
-            try {
-                $user = $request->user();
-            } catch (\Throwable $authEx) {
-                \Log::error('SuperAdmin Index - Auth Error:', [
-                    'error' => $authEx->getMessage(),
-                    'trace' => $authEx->getTraceAsString()
-                ]);
+            // Manual Bearer token authentication
+            $token = $request->bearerToken();
+            \Log::info('SuperAdmin Index - Token check', ['has_token' => !empty($token)]);
+            
+            if (!$token) {
                 return response()->json([
-                    'message' => 'Authentication failed',
-                    'error' => config('app.debug') ? $authEx->getMessage() : 'Auth error'
+                    'message' => 'No authentication token provided'
+                ], 401);
+            }
+            
+            // Find user by token
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$tokenModel) {
+                \Log::error('SuperAdmin Index - Invalid token');
+                return response()->json([
+                    'message' => 'Invalid or expired token'
+                ], 401);
+            }
+            
+            $user = $tokenModel->tokenable;
+            if (!$user) {
+                \Log::error('SuperAdmin Index - No user for token');
+                return response()->json([
+                    'message' => 'User not found for token'
                 ], 401);
             }
             
@@ -81,17 +94,20 @@ class SuperAdminController extends Controller
         \Log::info('SuperAdmin Store - Entry');
         
         try {
-            $user = null;
-            try {
-                $user = $request->user();
-            } catch (\Throwable $authEx) {
-                \Log::error('SuperAdmin Store - Auth Error:', [
-                    'error' => $authEx->getMessage()
-                ]);
-                return response()->json([
-                    'message' => 'Authentication failed',
-                    'error' => config('app.debug') ? $authEx->getMessage() : 'Auth error'
-                ], 401);
+            // Manual Bearer token authentication
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json(['message' => 'No authentication token provided'], 401);
+            }
+            
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$tokenModel) {
+                return response()->json(['message' => 'Invalid or expired token'], 401);
+            }
+            
+            $user = $tokenModel->tokenable;
+            if (!$user) {
+                return response()->json(['message' => 'User not found for token'], 401);
             }
             
             // Debug logging
@@ -164,11 +180,25 @@ class SuperAdminController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $user = $request->user();
+            // Manual Bearer token authentication
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json(['message' => 'No authentication token provided'], 401);
+            }
+            
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$tokenModel) {
+                return response()->json(['message' => 'Invalid or expired token'], 401);
+            }
+            
+            $user = $tokenModel->tokenable;
+            if (!$user) {
+                return response()->json(['message' => 'User not found for token'], 401);
+            }
             
             // Only superadmin can update admins
-            if (!$user || $user->role !== 'superadmin') {
-                return response()->json(['message' => 'Unauthorized'], 403);
+            if ($user->role !== 'superadmin') {
+                return response()->json(['message' => 'Unauthorized - superadmin role required'], 403);
             }
 
             $admin = User::where('role', 'admin')->find($id);
@@ -220,11 +250,25 @@ class SuperAdminController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $user = $request->user();
+            // Manual Bearer token authentication
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json(['message' => 'No authentication token provided'], 401);
+            }
+            
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$tokenModel) {
+                return response()->json(['message' => 'Invalid or expired token'], 401);
+            }
+            
+            $user = $tokenModel->tokenable;
+            if (!$user) {
+                return response()->json(['message' => 'User not found for token'], 401);
+            }
             
             // Only superadmin can delete admins
-            if (!$user || $user->role !== 'superadmin') {
-                return response()->json(['message' => 'Unauthorized'], 403);
+            if ($user->role !== 'superadmin') {
+                return response()->json(['message' => 'Unauthorized - superadmin role required'], 403);
             }
 
             $admin = User::where('role', 'admin')->find($id);

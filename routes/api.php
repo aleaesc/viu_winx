@@ -57,6 +57,16 @@ Route::delete('/public/responses/{id}', [PublicSurveyResponseController::class, 
 // Public: active survey questions
 Route::get('/questions', [SurveyQuestionController::class, 'index']);
 
+// SuperAdmin: manage admin accounts (auth handled in controller)
+Route::get('/superadmin/admins', [SuperAdminController::class, 'index'])
+    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+Route::post('/superadmin/admins', [SuperAdminController::class, 'store'])
+    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+Route::put('/superadmin/admins/{id}', [SuperAdminController::class, 'update'])
+    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+Route::delete('/superadmin/admins/{id}', [SuperAdminController::class, 'destroy'])
+    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -77,16 +87,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin: stats endpoint
     Route::get('/admin/stats', [StatsController::class, 'index']);
-
-    // SuperAdmin: manage admin accounts
-    Route::get('/superadmin/admins', [SuperAdminController::class, 'index'])
-        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
-    Route::post('/superadmin/admins', [SuperAdminController::class, 'store'])
-        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
-    Route::put('/superadmin/admins/{id}', [SuperAdminController::class, 'update'])
-        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
-    Route::delete('/superadmin/admins/{id}', [SuperAdminController::class, 'destroy'])
-        ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
 });
 
