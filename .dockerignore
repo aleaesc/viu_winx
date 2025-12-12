@@ -1,0 +1,16 @@
+node_modules/
+vendor/
+storage/logs/*
+.git/
+.gitignore
+.vscode/
+.env
+.env.*
+# Keep Dockerfile and render.yaml in context
+!Dockerfile
+!render.yaml
+coverage/
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

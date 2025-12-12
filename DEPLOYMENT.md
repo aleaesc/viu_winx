@@ -84,6 +84,7 @@ Login with seeded accounts:
 -   Create a MySQL service (choose free tier or paid plan)
 -   Note: `HOST`, `PORT`, `DATABASE`, `USERNAME`, `PASSWORD`
 -   Download CA certificate if SSL is required
+	-   If Aiven shows “SSL mode: REQUIRED”, click “CA certificate → Download” and save the PEM (starts with `-----BEGIN CERTIFICATE-----`).
 ### 2. Provision Ubuntu server
 
 -   Use DigitalOcean, AWS EC2, or similar
@@ -137,6 +138,9 @@ DB_DATABASE=defaultdb
 DB_USERNAME=avnadmin
 DB_PASSWORD=your-aiven-password
 
+# If SSL is required by Aiven, also set the CA path used by Laravel's PDO
+MYSQL_ATTR_SSL_CA=/etc/ssl/certs/aiven-ca.pem
+
 # Add your AI keys
 OPENROUTER_API_KEY=your-key
 GEMINI_API_KEY=your-key
@@ -188,6 +192,45 @@ Visit: `https://yourdomain.com/admin`
 Login with seeded accounts (same as Vapor)
 
 ---
+
+## Render (Docker) + Aiven
+
+### 1. Create Render Web Service (Docker)
+-   Runtime: Docker
+-   Link this repo on branch `main`
+
+### 2. Environment variables (copy from your `.env`)
+-   `APP_ENV=production`
+-   `APP_DEBUG=false`
+-   `APP_URL=https://<your-render-url>`
+-   `FRONTEND_URL=https://<your-render-url>`
+-   `APP_KEY=<keep your existing key>`
+-   `DB_CONNECTION=mysql`
+-   `DB_HOST=<your-aiven-host>`
+-   `DB_PORT=<your-aiven-port>`
+-   `DB_DATABASE=<your-db-name>`
+-   `DB_USERNAME=<your-db-user>`
+-   `DB_PASSWORD=<your-db-pass>`
+-   `MYSQL_ATTR_SSL_CA=/etc/ssl/certs/aiven-ca.pem` (Aiven SSL)
+
+### 3. Secret File: mount Aiven CA certificate
+-   Render → Service → Settings → Secret Files → “Add Secret File”
+	-   Name: `aiven-ca.pem`
+	-   Contents: paste the CA certificate from Aiven (the PEM you posted)
+	-   Mount path: `/etc/ssl/certs/aiven-ca.pem`
+-   Ensure the env `MYSQL_ATTR_SSL_CA` matches the same path.
+
+### 4. Deploy and auto-migrate
+-   First deploy builds the image and runs `php artisan migrate --force`.
+-   If DB/SSL fail, fix envs or Secret File and redeploy.
+
+### 5. Verify
+-   Visit your Render URL and test login on `/admin`.
+-   Run a quick DB check from Shell:
+	```bash
+	php artisan tinker
+	>>> DB::select('SELECT 1')
+	```
 
 ## Admin Credentials (Auto-seeded)
 
