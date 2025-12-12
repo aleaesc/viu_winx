@@ -69,11 +69,15 @@ class ChatbotController extends Controller
                     'conversation_id' => $conversationId
                 ], 200);
             } catch (\Throwable $e) {
-                Log::error('Chatbot service failed', [
-                    'conversation_id' => $conversationId,
-                    'question' => $request->input('question'),
-                    'error' => $e->getMessage()
-                ]);
+                try {
+                    Log::error('Chatbot service failed', [
+                        'conversation_id' => $conversationId,
+                        'question' => $request->input('question'),
+                        'error' => $e->getMessage()
+                    ]);
+                } catch (\Throwable $logErr) {
+                    // ignore logging failures in production
+                }
                 return response()->json([
                     'success' => true,
                     'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊'],
@@ -81,7 +85,11 @@ class ChatbotController extends Controller
                 ], 200);
             }
         } catch (\Throwable $outer) {
-            Log::error('Chatbot outer failure', ['error' => $outer->getMessage()]);
+            try {
+                Log::error('Chatbot outer failure', ['error' => $outer->getMessage()]);
+            } catch (\Throwable $logErr) {
+                // ignore logging failures in production
+            }
             return response()->json([
                 'success' => true,
                 'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment 😊'],
