@@ -61,7 +61,7 @@
             const username = usernameEl ? usernameEl.value.trim() : '';
             const password = passwordEl ? passwordEl.value : '';
             if(!username || !password){ alert('Enter username and password'); return; }
-            const res = await fetch('{{ url('/api/login') }}', {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 mode: 'cors',
@@ -80,7 +80,7 @@
             // Check if user is superadmin and redirect
             const userRole = data.user?.role || '';
             if(userRole === 'superadmin') {
-                window.location.href = '{{ url('/superadmin') }}';
+                window.location.href = '/superadmin';
                 return;
             }
             
@@ -127,7 +127,7 @@
                 const headers = { 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' };
                 if(token) headers['Authorization'] = 'Bearer '+token;
                 try {
-                    const urlStats = `{{ url('/api/admin/stats') }}?range=${range}`;
+                    const urlStats = `/api/admin/stats?range=${range}`;
                     const res = await fetch(urlStats, { headers, credentials:'omit' });
                     const ok = res && res.ok;
                     const data = ok ? (await safeJSON(res)) : null;
@@ -144,7 +144,7 @@
                 const headers = { 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' };
                 if(token) headers['Authorization'] = 'Bearer '+token;
                 try {
-                    const url = `{{ url('/api/public/responses') }}`;
+                    const url = `/api/public/responses`;
                     const res = await fetch(url, { headers, credentials:'omit' });
                     const ok = res && res.ok;
                     const data = ok ? (await safeJSON(res)) : null;
@@ -254,7 +254,7 @@
                     <button type="button" onclick="togglePassword()" class="absolute right-0 bottom-3 text-gray-400 hover:text-gray-600"><i data-lucide="eye" id="eye-icon" class="w-5 h-5"></i></button>
                 </div>
                 <button type="submit" class="btn border-none bg-viu-yellow hover-bg-viu-dark text-black font-bold h-12 rounded-full mt-6 text-sm tracking-wider uppercase shadow-md w-full">LOGIN</button>
-                <a href="{{ url('/usersurvey') }}" class="text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors cursor-pointer">Cancel</a>
+                <a href="/usersurvey" class="text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors cursor-pointer">Cancel</a>
             </form>
         </div>
     </div>
