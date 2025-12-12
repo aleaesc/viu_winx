@@ -13,6 +13,7 @@ RUN apt-get update \
 # Set working dir
 WORKDIR /var/www/html
 ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV APP_KEY=base64:dGVtcG9yYXJ5a2V5Zm9yYnVpbGR0aW1lb25seQ==
 
 # Copy composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -21,7 +22,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock /var/www/html/
 
 # Install PHP dependencies early so vendor exists at runtime
-RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
+RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts && \
+    composer dump-autoload --optimize
 
 # Copy the rest of the application source
 COPY . /var/www/html
