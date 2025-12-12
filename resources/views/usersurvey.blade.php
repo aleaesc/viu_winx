@@ -455,7 +455,7 @@
                 questions.forEach(q => q.rating = 0);
             } else {
                 try {
-                    const res = await fetch("{{ url('/api/questions') }}", { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch('/api/questions', { headers: { 'Accept': 'application/json' } });
                     if (res.ok) {
                         const data = await res.json();
                         const list = (data && data.questions) ? data.questions : [];
@@ -1071,7 +1071,7 @@
                 submitted_at: new Date().toISOString()
             };
             try {
-                const res = await fetch("{{ url('/api/public/responses') }}", {
+                const res = await fetch('/api/public/responses', {
                     method: 'POST',
                     headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
                     body: JSON.stringify(payload)

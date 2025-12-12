@@ -18,7 +18,11 @@ class SecurityHeaders
             "img-src 'self' data: https:; " .
             "script-src 'self' 'unsafe-inline' https:; " .
             "style-src 'self' 'unsafe-inline' https:; " .
-            "font-src 'self' https: data:;"
+            "font-src 'self' https: data:; " .
+            // Allow API calls, SSE/WebSockets, and same-origin fetch
+            "connect-src 'self' https: wss:; " .
+            // Prevent mixed content by upgrading any http URLs automatically
+            "upgrade-insecure-requests;"
         );
         return $response;
     }
