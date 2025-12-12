@@ -18,6 +18,10 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_DEPRECATIONS_CHANNEL
+        value: null
       - key: APP_URL
         sync: false
       - key: APP_KEY
