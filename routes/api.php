@@ -32,6 +32,22 @@ Route::get('/hello', function () {
     return response()->json(['hello' => 'world'], 200);
 });
 
+// Temp: cache clear endpoint (remove after deploy)
+Route::get('/cache/clear', function (Illuminate\Http\Request $request) {
+    if ($request->query('secret') !== 'viu2025clear') {
+        return response()->json(['error' => 'unauthorized'], 403);
+    }
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:cache');
+        return response()->json(['ok' => true, 'message' => 'caches cleared'], 200);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)
