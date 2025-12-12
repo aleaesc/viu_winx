@@ -20,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->appendToGroup('web', [\App\Http\Middleware\SecurityHeaders::class]);
-        $middleware->appendToGroup('api', [\App\Http\Middleware\SecurityHeaders::class]);
+        // REMOVED: SecurityHeaders from API - might interfere with JSON responses
+        // $middleware->appendToGroup('api', [\App\Http\Middleware\SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {
