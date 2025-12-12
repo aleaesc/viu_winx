@@ -11,11 +11,18 @@ RUN apt-get update \
 
 # Set working dir
 WORKDIR /var/www/html
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Copy composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy app files
+# Copy only composer manifests first to leverage Docker layer caching
+COPY composer.json composer.lock /var/www/html/
+
+# Install PHP dependencies early so vendor exists at runtime
+RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
+
+# Copy the rest of the application source
 COPY . /var/www/html
 
 # Set Apache document root to public
@@ -28,10 +35,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Install PHP dependencies and optimize
-RUN composer install --no-dev --prefer-dist --optimize-autoloader \
-    && php artisan config:cache \
-    && php artisan route:cache \
+# Optimize caches (non-fatal during build)
+RUN php artisan config:cache || true \
+    && php artisan route:cache || true \
     && php artisan view:cache || true
 
 # Expose port
