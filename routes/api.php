@@ -27,6 +27,11 @@ Route::post('/test-post', function () {
     return response()->json(['status' => 'POST works', 'time' => time()], 200);
 });
 
+// Simple hello endpoint (sanity)
+Route::get('/hello', function () {
+    return response()->json(['hello' => 'world'], 200);
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)
