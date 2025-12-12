@@ -76,6 +76,22 @@ Route::get('/chatbot/diag', function () {
     }
 })->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
+// Minimal probe without logging or service instantiation
+Route::get('/chatbot/probe', function () {
+    $groqKeys = array_filter([
+        env('GROQ_API_KEY_1'),
+        env('GROQ_API_KEY_2'),
+        env('GROQ_API_KEY_3'),
+        env('GROQ_API_KEY_4'),
+    ]);
+    return response()->json([
+        'ok' => true,
+        'groq_keys' => count($groqKeys),
+        'has_openai' => (bool) env('OPENAI_API_KEY'),
+        'has_gemini' => (bool) env('GEMINI_API_KEY'),
+    ], 200);
+})->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+
 // Public survey responses (no auth, stateless)
 Route::get('/public/responses', [PublicSurveyResponseController::class, 'index'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
