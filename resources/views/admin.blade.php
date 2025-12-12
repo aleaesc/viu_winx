@@ -1377,12 +1377,18 @@
                     labels = filtered.map(x => x.label);
                     data = filtered.map(x => x.value);
                 }
-                if(pieChartInstance){ pieChartInstance.destroy(); }
-                pieChartInstance = new Chart(ctxPie, {
-                    type: 'pie',
-                    data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=>pastelPalette[(i+5)%pastelPalette.length]), borderWidth: 0 }] },
-                    options: { plugins: { legend: { position:'bottom' } } }
-                });
+                try {
+                    if(pieChartInstance){ pieChartInstance.destroy(); }
+                    pieChartInstance = new Chart(ctxPie, {
+                        type: 'pie',
+                        data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=>pastelPalette[(i+5)%pastelPalette.length]), borderWidth: 0 }] },
+                        options: { plugins: { legend: { position:'bottom' } } }
+                    });
+                } catch(e) {
+                    console.error('Pie chart error:', e);
+                }
+            } else {
+                console.warn('pieChart canvas not found');
             }
 
             // World map is now rendered in loadStats() function

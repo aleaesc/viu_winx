@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Bar Chart Test</h1>
+    <canvas id="barChart" width="400" height="200"></canvas>
+    
+    <h1>Pie Chart Test</h1>
+    <canvas id="pieChart" width="400" height="200"></canvas>
+    
+    <script>
+        // Simulate the API response
+        const stats = {"range":"all","total_submissions":18,"overall_average":3.95,"questions":[{"title":"Account Management","avg_rating":"4.2353","ratings_count":17},{"title":"Ad Experience (If applicable)","avg_rating":"3.8824","ratings_count":17},{"title":"App Performance","avg_rating":"3.7059","ratings_count":17},{"title":"Content Variety","avg_rating":"3.4706","ratings_count":17},{"title":"Discovery & Search","avg_rating":"4.3529","ratings_count":17},{"title":"Download Feature","avg_rating":"3.9412","ratings_count":17},{"title":"Other","avg_rating":"3.5000","ratings_count":10},{"title":"Personalized Recommendations","avg_rating":"4.4706","ratings_count":17},{"title":"Streaming Quality","avg_rating":"3.8235","ratings_count":17},{"title":"Subtitles & Dubbing","avg_rating":"4.2941","ratings_count":17},{"title":"Value for Money","avg_rating":"3.5882","ratings_count":17}],"overall_distribution":{"counts":{"1":1,"2":7,"3":5,"4":29,"5":113},"percents":{"1":0.65,"2":4.52,"3":3.23,"4":18.71,"5":72.9}}};
+        
+        const pastelPalette = ['#A7F3D0','#BFDBFE','#FDE68A','#FBCFE8','#C7D2FE','#FCA5A5','#DDD6FE','#99F6E4','#FDE68A','#C4B5FD'];
+        
+        // Bar Chart
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        let qStats = stats.questions || [];
+        let labels = qStats.map(q=> (q.title||q.question_title||'Untitled') );
+        let data = qStats.map(q=> Number(q.avg_rating||q.average||0) );
+        
+        console.log('Bar Chart Labels:', labels);
+        console.log('Bar Chart Data:', data);
+        
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=>pastelPalette[i%pastelPalette.length]), borderWidth: 0 }] },
+            options: { plugins: { legend: { display:false } }, scales: { y: { beginAtZero:true, max:5 } } }
+        });
+        
+        // Pie Chart
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        let pieLabels = Object.keys(stats.overall_distribution.counts).map(k=>'Rating '+k);
+        let pieData = Object.values(stats.overall_distribution.counts);
+        
+        console.log('Pie Chart Labels:', pieLabels);
+        console.log('Pie Chart Data:', pieData);
+        
+        // Filter out zeros
+        const filtered = pieLabels.map((l,i) => ({label:l, value:pieData[i]})).filter(x => x.value > 0);
+        if(filtered.length > 0){
+            pieLabels = filtered.map(x => x.label);
+            pieData = filtered.map(x => x.value);
+        }
+        
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieLabels.map((_,i)=>pastelPalette[(i+5)%pastelPalette.length]), borderWidth: 0 }] },
+            options: { plugins: { legend: { position:'bottom' } } }
+        });
+    </script>
+</body>
+</html>
