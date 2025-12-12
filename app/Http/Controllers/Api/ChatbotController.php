@@ -16,17 +16,16 @@ class ChatbotController extends Controller
     public function ask(Request $request)
     {
         // Rate limiting: Max 20 requests per minute per IP
-        $identifier = $request->ip() . '_chatbot';
-        $rateLimit = Cache::get($identifier, 0);
-
-        if ($rateLimit >= 20) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Hello, Viu Fam! Please slow down a bit. You can ask again in a moment. 😊'
-            ], 429);
-        }
-
-        Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
+        try {
+            $identifier = $request->ip() . '_chatbot';
+            $rateLimit = Cache::get($identifier, 0);
+            if ($rateLimit >= 20) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Hello, Viu Fam! Please slow down a bit. You can ask again in a moment. 😊'
+                ], 429);
+            }
+            Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
 
         try {
             // Instantiate service inside try so constructor errors are caught
@@ -63,12 +62,8 @@ class ChatbotController extends Controller
                 $conversationId
             );
 
-            return response()->json([
-                'success' => true,
-                'data' => ['answer' => $answer],
-                'conversation_id' => $conversationId
-            ], 200);
-
+            // Defensive: ensure a non-empty answer
+            $answer = is_string($answer) && strlen(trim($answer)) ? $answer : 'Viu Fam, our assistant is warming up. Try again in a moment 😊';
             return response()->json([
                 'success' => true,
                 'data' => ['answer' => $answer],
@@ -87,6 +82,13 @@ class ChatbotController extends Controller
                 'success' => true,
                 'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊'],
                 'conversation_id' => $conversationId ?? ('chat-' . time())
+            ], 200);
+        } catch (\Throwable $outer) {
+            Log::error('Chatbot outer failure', ['error' => $outer->getMessage()]);
+            return response()->json([
+                'success' => true,
+                'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment 😊'],
+                'conversation_id' => 'chat-' . time()
             ], 200);
         }
     }
