@@ -43,5 +43,5 @@ RUN php artisan config:cache || true \
 # Expose port
 EXPOSE 80
 
-# On container start, run migrations then start Apache
-CMD php artisan migrate --force && apache2-foreground
+# On container start, run migrations (non-fatal) then start Apache
+CMD php artisan migrate --force || echo "Migration failed, continuing..." && apache2-foreground
