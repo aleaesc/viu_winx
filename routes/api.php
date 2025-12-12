@@ -80,6 +80,51 @@ Route::get('/db/check', function (Illuminate\Http\Request $request) {
     }
 });
 
+// Remote backfill endpoint
+Route::get('/db/backfill', function (Illuminate\Http\Request $request) {
+    if ($request->query('secret') !== 'viu2025backfill') {
+        return response()->json(['error' => 'unauthorized'], 403);
+    }
+    try {
+        // Set variables for row numbering
+        DB::statement('SET @row_num = 0, @response = 0');
+
+        // Update ratings with question titles based on order
+        $sql = "UPDATE response_ratings rr 
+        JOIN (
+            SELECT id, response_id, 
+            @row_num := IF(@response = response_id, @row_num + 1, 1) as row_num,
+            @response := response_id 
+            FROM response_ratings 
+            ORDER BY response_id, id
+        ) ranked ON rr.id = ranked.id 
+        SET rr.question_title = CASE ranked.row_num 
+            WHEN 1 THEN 'Content Variety'
+            WHEN 2 THEN 'Streaming Quality'
+            WHEN 3 THEN 'Discovery & Search'
+            WHEN 4 THEN 'Subtitles & Dubbing'
+            WHEN 5 THEN 'App Performance'
+            WHEN 6 THEN 'Value for Money'
+            WHEN 7 THEN 'Download Feature'
+            WHEN 8 THEN 'Ad Experience (If applicable)'
+            WHEN 9 THEN 'Account Management'
+            WHEN 10 THEN 'Personalized Recommendations'
+            ELSE 'Other'
+        END
+        WHERE rr.question_title IS NULL";
+
+        $affected = DB::update($sql);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Backfill completed',
+            'updated_ratings' => $affected
+        ], 200);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)

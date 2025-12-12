@@ -40,7 +40,7 @@ class StatsController extends Controller
             $questionQuery->where('r.submitted_at', '>=', $fromDate);
         }
         $rows = $questionQuery
-            ->groupBy('rr.question_title')
+            ->groupBy(DB::raw('COALESCE(rr.question_title, "Untitled")'))
             ->orderBy('title')
             ->get();
 
