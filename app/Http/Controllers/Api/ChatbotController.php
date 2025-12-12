@@ -10,17 +10,32 @@ class ChatbotController extends Controller
 {
     public function ask(Request $request)
     {
-        // Always return 200 with friendly message to prevent client errors
-        Log::info('Chatbot controller reached', ['ip' => $request->ip()]);
-        
-        $answer = 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊';
-        $cid = $request->input('conversation_id') ?? ('chat-' . time());
-        return response()->json([
-            'success' => true,
-            'answer' => $answer,
-            'data' => ['answer' => $answer],
-            'conversation_id' => $cid
-        ], 200);
+        try {
+            // Always return 200 with friendly message to prevent client errors
+            Log::info('Chatbot controller reached', ['ip' => $request->ip()]);
+            
+            $answer = 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊';
+            $cid = $request->input('conversation_id') ?? ('chat-' . time());
+            return response()->json([
+                'success' => true,
+                'answer' => $answer,
+                'data' => ['answer' => $answer],
+                'conversation_id' => $cid
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Chatbot ask method failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊',
+                'data' => ['answer' => 'Viu Fam, our assistant is warming up. Try again in a moment — or check the survey for now 😊'],
+                'conversation_id' => 'chat-' . time()
+            ], 200);
+        }
     }
     
     // ORIGINAL METHOD DISABLED TO PREVENT 500s - RE-ENABLE AFTER INVESTIGATION
