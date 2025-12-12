@@ -664,7 +664,7 @@
             // 3. Initialize Views
             renderQuestionsList();
             updateDashboardStats();
-            initCharts(); // Using Chart.js
+            // NOTE: Charts are initialized via loadStats() which calls renderChartsFromStats()
         });
 
         // ==================== AUTH LOGIC ====================

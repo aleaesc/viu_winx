@@ -17,6 +17,11 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Support\Facades\DB;
 
+// Super simple test endpoint
+Route::get('/ping', function () {
+    return response()->json(['pong' => time()], 200);
+});
+
 Route::get('/countries', [CountryController::class, 'index']);
 
 // Lightweight health checks (to debug deploy issues)
