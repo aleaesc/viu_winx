@@ -83,8 +83,39 @@ Route::post('/register', [AuthController::class, 'register'])
 Route::post('/login', [AuthController::class, 'login'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
-Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
-    ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
+// Temp: inline fallback chatbot to isolate controller issues
+Route::post('/chatbot/ask', function (Request $request) {
+    try {
+        $question = strip_tags($request->input('question') ?? $request->input('message') ?? '');
+        $conversationId = $request->input('conversation_id') ?? 'chat-' . time();
+        
+        // Try service
+        try {
+            $svc = new \App\Services\ChatbotService();
+            $answer = $svc->chat($question, $conversationId);
+            return response()->json([
+                'success' => true,
+                'data' => ['answer' => $answer],
+                'conversation_id' => $conversationId
+            ], 200);
+        } catch (\Throwable $e) {
+            // Service failed; return friendly fallback
+            return response()->json([
+                'success' => true,
+                'data' => ['answer' => 'Viu Fam! Ask me about Viu shows, pricing (₱29-₱149), or our quick survey! 😊'],
+                'conversation_id' => $conversationId,
+                'debug_error' => $e->getMessage()
+            ], 200);
+        }
+    } catch (\Throwable $outer) {
+        return response()->json([
+            'success' => true,
+            'data' => ['answer' => 'Viu Fam! I\'m here to help with Viu questions! 😊'],
+            'conversation_id' => 'fallback-' . time(),
+            'debug_outer_error' => $outer->getMessage()
+        ], 200);
+    }
+})->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 
 // Diagnostics: check chatbot provider & health
 Route::get('/chatbot/diag', function () {
