@@ -22,7 +22,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . /var/www/html
 
 # Install PHP dependencies (now that full source is present)
-RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader --verbose
+RUN composer check-platform-reqs || true && \
+    composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader -vvv || \
+    (cat /root/.composer/cache/repo/https---repo.packagist.org/packages.json 2>/dev/null || echo "Cache empty"; exit 1)
 
 # Set Apache document root to public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
