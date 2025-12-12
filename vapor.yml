@@ -1,0 +1,18 @@
+id: viu-winx
+name: viu-winx
+environments:
+    production:
+        memory: 1024
+        cli-memory: 512
+        runtime: 'php-8.2:al2023'
+        build:
+            - 'COMPOSER_MIRROR_PATH_REPOS=1 composer install --no-dev --optimize-autoloader'
+            - 'php artisan config:cache'
+            - 'php artisan route:cache'
+            - 'php artisan view:cache'
+        deploy:
+            - 'php artisan migrate --force'
+        database: viu-winx-db
+        cache: viu-winx-cache
+        warm: 10
+        timeout: 60
