@@ -1,13 +1,13 @@
 # VIU WinX Deployment Guide
 
 ## Prerequisites
-- Laravel Vapor account (https://vapor.laravel.com) **OR** Ubuntu VPS + Aiven MySQL
+- Laravel Cloud account (https://cloud.laravel.com - includes Vapor serverless) **OR** Ubuntu VPS + Aiven MySQL
 - Domain name with DNS access
 
-## Option 1: Laravel Vapor (Serverless AWS)
+## Option 1: Laravel Cloud (Serverless AWS via Vapor)
 
-### 1. Sign up for Vapor
-- Visit https://vapor.laravel.com and create an account
+### 1. Sign up for Laravel Cloud
+- Visit https://cloud.laravel.com and create an account
 - Add a payment method and create a team
 
 ### 2. Install and authenticate Vapor CLI
