@@ -158,7 +158,8 @@
 
             document.addEventListener('DOMContentLoaded', async () => {
                 await loadResponses(); // Load responses first
-                loadStats('all'); // Then load stats which will render the map
+                // Delay loadStats to ensure renderChartsFromStats is defined
+                setTimeout(() => loadStats('all'), 100);
             });
         </script>
 
