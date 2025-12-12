@@ -255,7 +255,6 @@ From `routes/api.php`:
 
         6. Future deploys:
 
-
             - Migrations auto-run via `deploy` hook in `vapor.yml`.
 
     -   Notes:

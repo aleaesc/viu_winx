@@ -32,17 +32,16 @@ class StatsController extends Controller
         }
         $overallAvg = (float) $overallAvgQuery->avg('rr.rating');
 
-        // Per-question averages and counts
+        // Per-question averages and counts (using question_title from response_ratings)
         $questionQuery = DB::table('response_ratings as rr')
             ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
-            ->leftJoin('survey_questions as q', 'rr.question_id', '=', 'q.id')
-            ->selectRaw('rr.question_id as question_id, COALESCE(q.title, "Unknown") as title, AVG(rr.rating) as avg_rating, COUNT(*) as ratings_count');
+            ->selectRaw('COALESCE(rr.question_title, "Untitled") as title, AVG(rr.rating) as avg_rating, COUNT(*) as ratings_count');
         if ($fromDate) {
             $questionQuery->where('r.submitted_at', '>=', $fromDate);
         }
         $rows = $questionQuery
-            ->groupBy('rr.question_id', 'q.title')
-            ->orderBy('rr.question_id')
+            ->groupBy('rr.question_title')
+            ->orderBy('title')
             ->get();
 
         // Country breakdown
@@ -99,19 +98,19 @@ class StatsController extends Controller
         $questionDistributions = [];
         $questionRatingsMap = [];
         foreach ($rows as $qRow) {
-            $qid = $qRow->question_id;
+            $qtitle = $qRow->title;
             $qrBase = DB::table('response_ratings as rr')
                 ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
-                ->where('rr.question_id', $qid);
+                ->where('rr.question_title', $qtitle);
             if ($fromDate) { $qrBase->where('r.submitted_at', '>=', $fromDate); }
             $ratings = $qrBase->pluck('rr.rating');
-            $questionRatingsMap[$qid] = $ratings;
+            $questionRatingsMap[$qtitle] = $ratings;
             $dist = [];
             for ($i = 1; $i <= 5; $i++) { $dist[$i] = $ratings->where(fn($v) => (int)$v === $i)->count(); }
             $qTotal = max(1, array_sum($dist));
             $distPct = [];
             foreach ($dist as $score => $cnt) { $distPct[$score] = round(($cnt / $qTotal) * 100, 2); }
-            $questionDistributions[$qid] = [
+            $questionDistributions[$qtitle] = [
                 'counts' => $dist,
                 'percents' => $distPct,
                 'median' => $this->computeMedian($ratings),
@@ -137,15 +136,14 @@ class StatsController extends Controller
         // Service affinity per question (avg rating per question per service)
         $affinityQuery = DB::table('response_ratings as rr')
             ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
-            ->leftJoin('survey_questions as q', 'rr.question_id', '=', 'q.id')
-            ->selectRaw('rr.question_id, COALESCE(q.title, "Unknown") as title, COALESCE(r.service, "Unknown") as service, AVG(rr.rating) as avg_rating');
+            ->selectRaw('COALESCE(rr.question_title, "Untitled") as title, COALESCE(r.service, "Unknown") as service, AVG(rr.rating) as avg_rating');
         if ($fromDate) { $affinityQuery->where('r.submitted_at', '>=', $fromDate); }
-        $affinityRows = $affinityQuery->groupBy('rr.question_id', 'q.title', 'r.service')->get();
+        $affinityRows = $affinityQuery->groupBy('rr.question_title', 'r.service')->get();
         $serviceAffinity = [];
         foreach ($affinityRows as $ar) {
-            $qid = $ar->question_id;
-            if (!isset($serviceAffinity[$qid])) $serviceAffinity[$qid] = ['title' => $ar->title, 'services' => []];
-            $serviceAffinity[$qid]['services'][$ar->service] = round($ar->avg_rating, 2);
+            $qtitle = $ar->title;
+            if (!isset($serviceAffinity[$qtitle])) $serviceAffinity[$qtitle] = ['title' => $ar->title, 'services' => []];
+            $serviceAffinity[$qtitle]['services'][$ar->service] = round($ar->avg_rating, 2);
         }
 
         // Email domain breakdown
@@ -189,20 +187,20 @@ class StatsController extends Controller
             // per-question previous averages
             $prevQRows = DB::table('response_ratings as rr')
                 ->join('public_survey_responses as r', 'rr.response_id', '=', 'r.id')
-                ->selectRaw('rr.question_id, AVG(rr.rating) as avg_rating')
+                ->selectRaw('rr.question_title, AVG(rr.rating) as avg_rating')
                 ->whereBetween('r.submitted_at', [$prevFrom, $prevTo])
-                ->groupBy('rr.question_id')->get();
-            foreach ($prevQRows as $pqr) { $questionPrevAvgs[$pqr->question_id] = (float)$pqr->avg_rating; }
+                ->groupBy('rr.question_title')->get();
+            foreach ($prevQRows as $pqr) { $questionPrevAvgs[$pqr->question_title] = (float)$pqr->avg_rating; }
         }
         // Movement (improvers / decliners)
         $movement = ['improved' => [], 'declined' => []];
         if ($prevAvg !== null && $prevTotal !== null) {
             foreach ($rows as $qRow) {
-                $qid = $qRow->question_id; $curAvg = (float)$qRow->avg_rating; $oldAvg = $questionPrevAvgs[$qid] ?? null;
+                $qtitle = $qRow->title; $curAvg = (float)$qRow->avg_rating; $oldAvg = $questionPrevAvgs[$qtitle] ?? null;
                 if ($oldAvg !== null) {
                     $diff = $curAvg - $oldAvg; // positive = improvement
-                    $movement['improved'][] = ['question_id' => $qid, 'title' => $qRow->title, 'diff' => round($diff, 2)];
-                    $movement['declined'][] = ['question_id' => $qid, 'title' => $qRow->title, 'diff' => round($diff, 2)];
+                    $movement['improved'][] = ['title' => $qtitle, 'diff' => round($diff, 2)];
+                    $movement['declined'][] = ['title' => $qtitle, 'diff' => round($diff, 2)];
                 }
             }
             // Filter improved (positive diffs) & declined (negative diffs)

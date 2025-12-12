@@ -110,6 +110,7 @@ class PublicSurveyResponseController extends Controller
                 DB::table('response_ratings')->insert([
                     'response_id' => $resp->id,
                     'question_id' => $qid,
+                    'question_title' => $r['title'] ?? null,
                     'question_version' => $ver,
                     'rating' => $r['rating'],
                     'created_at' => now(),
