@@ -12,16 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // REMOVED: EnsureFrontendRequestsAreStateful was causing 500 errors
-        // It's applied per-route where needed instead
+        // Exclude API routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
         
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
         $middleware->appendToGroup('web', [\App\Http\Middleware\SecurityHeaders::class]);
-        // REMOVED: SecurityHeaders from API - might interfere with JSON responses
-        // $middleware->appendToGroup('api', [\App\Http\Middleware\SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {

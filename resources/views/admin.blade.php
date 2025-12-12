@@ -1516,6 +1516,12 @@
                 const res = await fetch(urlStats, { headers: { 'Accept':'application/json', 'Authorization': token ? ('Bearer '+token) : '' } });
                 if (!res.ok) throw new Error('Failed');
                 const data = await res.json();
+                
+                // Render charts with the fetched data
+                if(typeof renderChartsFromStats === 'function') {
+                    renderChartsFromStats(data);
+                }
+                
                 const total = document.getElementById('dash-total');
                 const avg = document.getElementById('dash-avg');
                 // Only override live count if stats provides a value
