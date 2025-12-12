@@ -47,6 +47,16 @@ Route::get('/health/users', function () {
     }
 });
 
+// Check if logging is writable in production
+Route::get('/health/log', function () {
+    try {
+        \Illuminate\Support\Facades\Log::info('health-log test write');
+        return response()->json(['ok' => true]);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
 Route::post('/register', [AuthController::class, 'register'])
     ->withoutMiddleware([VerifyCsrfToken::class, EnsureFrontendRequestsAreStateful::class]);
 Route::post('/login', [AuthController::class, 'login'])
