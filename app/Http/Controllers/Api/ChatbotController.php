@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ChatbotController extends Controller
 {
-    public function ask(Request $request, ChatbotService $chatService)
+    public function ask(Request $request)
     {
         // Rate limiting: Max 20 requests per minute per IP
         $identifier = $request->ip() . '_chatbot';
@@ -29,6 +29,8 @@ class ChatbotController extends Controller
         Cache::put($identifier, $rateLimit + 1, 60); // 1 minute window
 
         try {
+            // Instantiate service inside try so constructor errors are caught
+            $chatService = new ChatbotService();
             // Validate more permissively (allow emojis and international scripts)
             $request->validate([
                 'question' => 'required_without:message|string|max:500',
