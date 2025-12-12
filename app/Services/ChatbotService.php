@@ -12,13 +12,15 @@ class ChatbotService
     private string $provider = 'groq';
     private int $timeout = 10;
     private string $openaiKey;
+    private string $geminiKey;
     private array $groqKeys = [];
     private int $currentGroqKeyIndex = 0;
     
     public function __construct()
     {
-        // Load OpenAI key from environment
+        // Load provider keys from environment
         $this->openaiKey = env('OPENAI_API_KEY', '');
+        $this->geminiKey = env('GEMINI_API_KEY', '');
         
         // Load all Groq keys from environment
         $this->groqKeys = array_filter([
@@ -34,19 +36,29 @@ class ChatbotService
 
         Log::info("Total Groq keys available", ['count' => count($this->groqKeys)]);
 
-        // Choose provider safely
+        // Choose provider safely (Groq → OpenAI → Gemini)
         if (!empty($this->groqKeys)) {
             $this->apiKey = $this->groqKeys[0];
             $this->provider = 'groq';
         } elseif (!empty($this->openaiKey)) {
             $this->apiKey = $this->openaiKey;
             $this->provider = 'openai';
+        } elseif (!empty($this->geminiKey)) {
+            $this->apiKey = $this->geminiKey;
+            $this->provider = 'gemini';
         } else {
             // No provider keys configured; operate in fallback mode
             $this->apiKey = '';
             $this->provider = 'none';
             Log::warning('ChatbotService running without provider keys; using fallback responses');
         }
+
+        Log::info('ChatbotService provider selected', [
+            'provider' => $this->provider,
+            'groq_keys' => count($this->groqKeys),
+            'has_openai' => (bool) $this->openaiKey,
+            'has_gemini' => (bool) $this->geminiKey,
+        ]);
     }
 
     public function chat(string $userMessage, string $conversationId): string
@@ -446,8 +458,8 @@ PROMPT;
                             'presence_penalty' => 0.7,
                             'frequency_penalty' => 0.8
                         ]);
-                } else {
-                    // OpenAI fallback
+                } elseif ($this->provider === 'openai') {
+                    // OpenAI
                     $response = Http::timeout($this->timeout)
                         ->withHeaders([
                             'Authorization' => 'Bearer ' . $this->apiKey,
@@ -461,10 +473,34 @@ PROMPT;
                             'presence_penalty' => 0.6,
                             'frequency_penalty' => 0.7
                         ]);
+                } else {
+                    // Gemini
+                    $geminiMessages = [];
+                    foreach ($messages as $m) {
+                        $role = $m['role'];
+                        if ($role === 'assistant') { $role = 'model'; }
+                        if ($role === 'system') { $role = 'user'; }
+                        $geminiMessages[] = [
+                            'role' => $role,
+                            'parts' => [ ['text' => $m['content']] ]
+                        ];
+                    }
+
+                    $response = Http::timeout($this->timeout)
+                        ->withHeaders([
+                            'Content-Type' => 'application/json'
+                        ])
+                        ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $this->apiKey, [
+                            'contents' => $geminiMessages,
+                        ]);
                 }
 
                 if ($response->successful()) {
-                    $reply = $response->json('choices.0.message.content');
+                    if ($this->provider === 'gemini') {
+                        $reply = data_get($response->json(), 'candidates.0.content.parts.0.text');
+                    } else {
+                        $reply = $response->json('choices.0.message.content');
+                    }
                     Log::info("AI call successful", ['provider' => $this->provider, 'key_index' => $this->currentGroqKeyIndex]);
                     return $reply;
                 }
@@ -479,10 +515,19 @@ PROMPT;
                         continue;
                     }
                     
-                    // All Groq keys exhausted, switch to OpenAI
-                    Log::warning("All " . count($this->groqKeys) . " Groq keys exhausted, switching to OpenAI");
-                    $this->provider = 'openai';
-                    $this->apiKey = $this->openaiKey;
+                    // All Groq keys exhausted, switch to OpenAI or Gemini
+                    if (!empty($this->openaiKey)) {
+                        Log::warning("All " . count($this->groqKeys) . " Groq keys exhausted, switching to OpenAI");
+                        $this->provider = 'openai';
+                        $this->apiKey = $this->openaiKey;
+                    } elseif (!empty($this->geminiKey)) {
+                        Log::warning("All " . count($this->groqKeys) . " Groq keys exhausted, switching to Gemini");
+                        $this->provider = 'gemini';
+                        $this->apiKey = $this->geminiKey;
+                    } else {
+                        Log::warning("All Groq keys exhausted and no other providers configured");
+                        return null;
+                    }
                     $this->currentGroqKeyIndex = 0; // Reset for next request
                     
                     // Retry immediately with OpenAI
@@ -497,6 +542,14 @@ PROMPT;
                     continue;
                 }
 
+                // Rate limit on Gemini - retry with backoff
+                if ($response->status() === 429 && $this->provider === 'gemini' && $attempt < $maxRetries) {
+                    $delay = $baseDelay * pow(2, $attempt - 1);
+                    Log::warning("Gemini rate limit hit, retrying in {$delay}s");
+                    sleep($delay);
+                    continue;
+                }
+
                 Log::warning("{$this->provider} API failed", ['status' => $response->status(), 'attempt' => $attempt]);
                 
                 if ($attempt === $maxRetries) {
@@ -506,11 +559,23 @@ PROMPT;
             } catch (\Exception $e) {
                 Log::error("{$this->provider} API error", ['error' => $e->getMessage(), 'attempt' => $attempt]);
                 
-                // Try OpenAI fallback on exception if still on Groq
-                if ($this->provider === 'groq' && $this->openaiKey) {
-                    Log::warning("Groq failed, switching to OpenAI");
-                    $this->provider = 'openai';
-                    $this->apiKey = $this->openaiKey;
+                // Try alternate provider on exception
+                if ($this->provider === 'groq') {
+                    if (!empty($this->openaiKey)) {
+                        Log::warning("Groq failed, switching to OpenAI");
+                        $this->provider = 'openai';
+                        $this->apiKey = $this->openaiKey;
+                        continue;
+                    } elseif (!empty($this->geminiKey)) {
+                        Log::warning("Groq failed, switching to Gemini");
+                        $this->provider = 'gemini';
+                        $this->apiKey = $this->geminiKey;
+                        continue;
+                    }
+                } elseif ($this->provider === 'openai' && !empty($this->geminiKey)) {
+                    Log::warning("OpenAI failed, switching to Gemini");
+                    $this->provider = 'gemini';
+                    $this->apiKey = $this->geminiKey;
                     continue;
                 }
                 
