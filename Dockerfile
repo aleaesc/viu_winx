@@ -42,8 +42,10 @@ RUN php artisan config:cache || true \
 # Expose port
 EXPOSE 80
 
-# On container start, clear cache, run migrations (non-fatal), then start Apache
-CMD php artisan config:clear && \
+# On container start, create certs dir, copy CA if exists, clear cache, run migrations (non-fatal), then start Apache
+CMD mkdir -p /var/www/html/storage/certs && \
+    (cp /etc/secrets/aiven-ca.pem /var/www/html/storage/certs/aiven-ca.pem 2>/dev/null || echo "CA cert not found in /etc/secrets, checking other paths...") && \
+    php artisan config:clear && \
     php artisan cache:clear && \
     php artisan view:clear && \
     php artisan route:clear && \
