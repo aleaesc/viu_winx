@@ -525,7 +525,11 @@
                         'I\'m here if you need assistance! Just type your question.',
                     ];
                     const msg = proactiveMessages[Math.floor(Math.random() * proactiveMessages.length)];
-                    addBotMessage(msg, Date.now(), ['Help with survey', 'Tell me about Viu']);
+                    if (typeof addBotMessage === 'function') {
+                        addBotMessage(msg, Date.now(), ['Help with survey', 'Tell me about Viu']);
+                    } else {
+                        console.warn('addBotMessage is not available yet');
+                    }
                 }
             }, 30000);
         }
