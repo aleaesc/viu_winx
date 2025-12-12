@@ -54,4 +54,5 @@ CMD mkdir -p /var/www/html/storage/certs && \
     php artisan view:clear && \
     php artisan route:clear && \
     (php artisan migrate --force || echo "Migration failed, continuing...") && \
+    (php artisan db:seed --class=AdminUserSeeder --force || echo "Seeding admins failed or already exists, continuing...") && \
     apache2-foreground
