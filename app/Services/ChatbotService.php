@@ -31,10 +31,10 @@ class ChatbotService
         ]);
         
         if (empty($this->groqKeys)) {
-            Log::warning('No Groq API keys found in environment');
+            $this->safeLog('warning', 'No Groq API keys found in environment');
         }
 
-        Log::info("Total Groq keys available", ['count' => count($this->groqKeys)]);
+        $this->safeLog('info', 'Total Groq keys available', ['count' => count($this->groqKeys)]);
 
         // Choose provider safely (Groq → OpenAI → Gemini)
         if (!empty($this->groqKeys)) {
@@ -50,15 +50,23 @@ class ChatbotService
             // No provider keys configured; operate in fallback mode
             $this->apiKey = '';
             $this->provider = 'none';
-            Log::warning('ChatbotService running without provider keys; using fallback responses');
+            $this->safeLog('warning', 'ChatbotService running without provider keys; using fallback responses');
         }
 
-        Log::info('ChatbotService provider selected', [
+        $this->safeLog('info', 'ChatbotService provider selected', [
             'provider' => $this->provider,
             'groq_keys' => count($this->groqKeys),
             'has_openai' => (bool) $this->openaiKey,
             'has_gemini' => (bool) $this->geminiKey,
         ]);
+    }
+    private function safeLog(string $level, string $message, array $context = []): void
+    {
+        try {
+            Log::{$level}($message, $context);
+        } catch (\Throwable $e) {
+            // swallow logging errors
+        }
     }
 
     public function getDiagnostics(): array
@@ -158,11 +166,11 @@ class ChatbotService
         $messages[] = ['role' => 'user', 'content' => $userMessage];
         
         // Call AI with retry logic
-        Log::info("Calling AI", ['provider' => $this->provider, 'message' => $userMessage]);
+        $this->safeLog('info', 'Calling AI', ['provider' => $this->provider, 'message' => $userMessage]);
         $reply = $this->callAI($messages);
         
         if (!$reply) {
-            Log::warning("AI call returned null, using fallback");
+            $this->safeLog('warning', 'AI call returned null, using fallback');
 
             // Intelligent fallback based on context
             if (stripos($userMessage, 'price') !== false || stripos($userMessage, 'magkano') !== false) {
@@ -512,7 +520,7 @@ PROMPT;
                     } else {
                         $reply = $response->json('choices.0.message.content');
                     }
-                    Log::info("AI call successful", ['provider' => $this->provider, 'key_index' => $this->currentGroqKeyIndex]);
+                    $this->safeLog('info', 'AI call successful', ['provider' => $this->provider, 'key_index' => $this->currentGroqKeyIndex]);
                     return $reply;
                 }
 
@@ -522,21 +530,21 @@ PROMPT;
                     if ($this->currentGroqKeyIndex < count($this->groqKeys) - 1) {
                         $this->currentGroqKeyIndex++;
                         $this->apiKey = $this->groqKeys[$this->currentGroqKeyIndex];
-                        Log::warning("Groq key rate limited, trying key " . ($this->currentGroqKeyIndex + 1) . " of " . count($this->groqKeys));
+                        $this->safeLog('warning', 'Groq key rate limited, trying next', ['try_index' => $this->currentGroqKeyIndex + 1, 'total' => count($this->groqKeys)]);
                         continue;
                     }
                     
                     // All Groq keys exhausted, switch to OpenAI or Gemini
                     if (!empty($this->openaiKey)) {
-                        Log::warning("All " . count($this->groqKeys) . " Groq keys exhausted, switching to OpenAI");
+                        $this->safeLog('warning', 'All Groq keys exhausted, switching to OpenAI', ['total' => count($this->groqKeys)]);
                         $this->provider = 'openai';
                         $this->apiKey = $this->openaiKey;
                     } elseif (!empty($this->geminiKey)) {
-                        Log::warning("All " . count($this->groqKeys) . " Groq keys exhausted, switching to Gemini");
+                        $this->safeLog('warning', 'All Groq keys exhausted, switching to Gemini', ['total' => count($this->groqKeys)]);
                         $this->provider = 'gemini';
                         $this->apiKey = $this->geminiKey;
                     } else {
-                        Log::warning("All Groq keys exhausted and no other providers configured");
+                        $this->safeLog('warning', 'All Groq keys exhausted and no other providers configured');
                         return null;
                     }
                     $this->currentGroqKeyIndex = 0; // Reset for next request
@@ -548,7 +556,7 @@ PROMPT;
                 // Rate limit on OpenAI - retry with backoff
                 if ($response->status() === 429 && $this->provider === 'openai' && $attempt < $maxRetries) {
                     $delay = $baseDelay * pow(2, $attempt - 1);
-                    Log::warning("OpenAI rate limit hit, retrying in {$delay}s");
+                    $this->safeLog('warning', 'OpenAI rate limit hit, retrying', ['delay' => $delay]);
                     sleep($delay);
                     continue;
                 }
@@ -556,35 +564,35 @@ PROMPT;
                 // Rate limit on Gemini - retry with backoff
                 if ($response->status() === 429 && $this->provider === 'gemini' && $attempt < $maxRetries) {
                     $delay = $baseDelay * pow(2, $attempt - 1);
-                    Log::warning("Gemini rate limit hit, retrying in {$delay}s");
+                    $this->safeLog('warning', 'Gemini rate limit hit, retrying', ['delay' => $delay]);
                     sleep($delay);
                     continue;
                 }
 
-                Log::warning("{$this->provider} API failed", ['status' => $response->status(), 'attempt' => $attempt]);
+                $this->safeLog('warning', $this->provider . ' API failed', ['status' => $response->status(), 'attempt' => $attempt]);
                 
                 if ($attempt === $maxRetries) {
                     return null;
                 }
 
             } catch (\Exception $e) {
-                Log::error("{$this->provider} API error", ['error' => $e->getMessage(), 'attempt' => $attempt]);
+                $this->safeLog('error', $this->provider . ' API error', ['error' => $e->getMessage(), 'attempt' => $attempt]);
                 
                 // Try alternate provider on exception
                 if ($this->provider === 'groq') {
                     if (!empty($this->openaiKey)) {
-                        Log::warning("Groq failed, switching to OpenAI");
+                        $this->safeLog('warning', 'Groq failed, switching to OpenAI');
                         $this->provider = 'openai';
                         $this->apiKey = $this->openaiKey;
                         continue;
                     } elseif (!empty($this->geminiKey)) {
-                        Log::warning("Groq failed, switching to Gemini");
+                        $this->safeLog('warning', 'Groq failed, switching to Gemini');
                         $this->provider = 'gemini';
                         $this->apiKey = $this->geminiKey;
                         continue;
                     }
                 } elseif ($this->provider === 'openai' && !empty($this->geminiKey)) {
-                    Log::warning("OpenAI failed, switching to Gemini");
+                    $this->safeLog('warning', 'OpenAI failed, switching to Gemini');
                     $this->provider = 'gemini';
                     $this->apiKey = $this->geminiKey;
                     continue;
