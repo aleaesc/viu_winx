@@ -58,12 +58,7 @@ vapor secrets production GEMINI_API_KEY="your-key-here"
 vapor deploy production
 ```
 
-### 7. Run migrations (auto-seeds admins)
-
-```powershell
-vapor artisan production migrate
 ```
-
 ### 8. Configure domain
 
 -   In Vapor dashboard: Environments → production → Domain
@@ -82,16 +77,13 @@ Login with seeded accounts:
 -   `adminviu` / `viu12345`
 
 ---
-
 ## Option 2: VPS + Aiven MySQL
 
 ### 1. Create Aiven MySQL service
-
 -   Sign up at https://aiven.io
 -   Create a MySQL service (choose free tier or paid plan)
 -   Note: `HOST`, `PORT`, `DATABASE`, `USERNAME`, `PASSWORD`
 -   Download CA certificate if SSL is required
-
 ### 2. Provision Ubuntu server
 
 -   Use DigitalOcean, AWS EC2, or similar

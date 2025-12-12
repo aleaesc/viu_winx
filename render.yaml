@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: viu-winx
+    env: ubuntu
+    plan: starter
+    autoDeploy: true
+    buildCommand: |
+      sudo apt-get update;
+      sudo apt-get install -y php8.2 php8.2-cli php8.2-mysql;
+      curl -sS https://getcomposer.org/installer | php;
+      php composer.phar install --no-dev --prefer-dist;
+      php artisan config:cache;
+      php artisan route:cache;
+      php artisan view:cache
+    startCommand: |
+      php artisan migrate --force;
+      php artisan serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
