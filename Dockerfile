@@ -30,6 +30,10 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
     && sed -ri -e 's!Directory /var/www/!Directory ${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
+# Allow .htaccess overrides for Laravel routes
+RUN echo "<Directory ${APACHE_DOCUMENT_ROOT}>\n    AllowOverride All\n</Directory>" > /etc/apache2/conf-available/laravel.conf \
+    && a2enconf laravel
+
 # Ensure storage and bootstrap/cache are writable
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
